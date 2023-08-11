@@ -128,7 +128,7 @@ archives:
 brews:
   -
     tap:
-      owner: aquasecurity
+      owner: nikpivkin
       name: homebrew-trivy
     homepage: "https://github.com/aquasecurity/trivy"
     description: "Scanner for vulnerabilities in container images, file systems, and Git repositories, as well as for configuration issues"
@@ -137,12 +137,10 @@ brews:
 
 dockers:
   - image_templates:
-      - "docker.io/aquasec/trivy:{{ .Version }}-amd64"
-      - "docker.io/aquasec/trivy:latest-amd64"
-      - "ghcr.io/aquasecurity/trivy:{{ .Version }}-amd64"
-      - "ghcr.io/aquasecurity/trivy:latest-amd64"
-      - "public.ecr.aws/aquasecurity/trivy:latest-amd64"
-      - "public.ecr.aws/aquasecurity/trivy:{{ .Version }}-amd64"
+      - "docker.io/nikpivkin/trivy:{{ .Version }}-amd64"
+      - "docker.io/nikpivkin/trivy:latest-amd64"
+      - "ghcr.io/nikpivkin/trivy:{{ .Version }}-amd64"
+      - "ghcr.io/nikpivkin/trivy:latest-amd64"
     use: buildx
     goos: linux
     goarch: amd64
@@ -162,12 +160,10 @@ dockers:
     extra_files:
     - contrib/
   - image_templates:
-      - "docker.io/aquasec/trivy:{{ .Version }}-arm64"
-      - "docker.io/aquasec/trivy:latest-arm64"
-      - "ghcr.io/aquasecurity/trivy:{{ .Version }}-arm64"
-      - "ghcr.io/aquasecurity/trivy:latest-arm64"
-      - "public.ecr.aws/aquasecurity/trivy:latest-arm64"
-      - "public.ecr.aws/aquasecurity/trivy:{{ .Version }}-arm64"
+      - "docker.io/nikpivkin/trivy:{{ .Version }}-arm64"
+      - "docker.io/nikpivkin/trivy:latest-arm64"
+      - "ghcr.io/nikpivkin/trivy:{{ .Version }}-arm64"
+      - "ghcr.io/nikpivkin/trivy:latest-arm64"
     use: buildx
     goos: linux
     goarch: arm64
@@ -187,12 +183,10 @@ dockers:
     extra_files:
     - contrib/
   - image_templates:
-      - "docker.io/aquasec/trivy:{{ .Version }}-s390x"
-      - "docker.io/aquasec/trivy:latest-s390x"
-      - "ghcr.io/aquasecurity/trivy:{{ .Version }}-s390x"
-      - "ghcr.io/aquasecurity/trivy:latest-s390x"
-      - "public.ecr.aws/aquasecurity/trivy:latest-s390x"
-      - "public.ecr.aws/aquasecurity/trivy:{{ .Version }}-s390x"
+      - "docker.io/nikpivkin/trivy:{{ .Version }}-s390x"
+      - "docker.io/nikpivkin/trivy:latest-s390x"
+      - "ghcr.io/nikpivkin/trivy:{{ .Version }}-s390x"
+      - "ghcr.io/nikpivkin/trivy:latest-s390x"
     use: buildx
     goos: linux
     goarch: s390x
@@ -212,12 +206,10 @@ dockers:
     extra_files:
     - contrib/
   - image_templates:
-      - "docker.io/aquasec/trivy:{{ .Version }}-ppc64le"
-      - "docker.io/aquasec/trivy:latest-ppc64le"
-      - "ghcr.io/aquasecurity/trivy:{{ .Version }}-ppc64le"
-      - "ghcr.io/aquasecurity/trivy:latest-ppc64le"
-      - "public.ecr.aws/aquasecurity/trivy:latest-ppc64le"
-      - "public.ecr.aws/aquasecurity/trivy:{{ .Version }}-ppc64le"
+      - "docker.io/nikpivkin/trivy:{{ .Version }}-ppc64le"
+      - "docker.io/nikpivkin/trivy:latest-ppc64le"
+      - "ghcr.io/nikpivkin/trivy:{{ .Version }}-ppc64le"
+      - "ghcr.io/nikpivkin/trivy:latest-ppc64le"
     use: buildx
     goos: linux
     goarch: ppc64le
@@ -238,24 +230,18 @@ dockers:
     - contrib/
 
 docker_manifests:
-  - name_template: 'aquasec/trivy:{{ .Version }}'
+  - name_template: 'nikpivkin/trivy:{{ .Version }}'
     image_templates:
-    - 'aquasec/trivy:{{ .Version }}-amd64'
-    - 'aquasec/trivy:{{ .Version }}-arm64'
-    - 'aquasec/trivy:{{ .Version }}-s390x'
-    - 'aquasec/trivy:{{ .Version }}-ppc64le'
-  - name_template: 'ghcr.io/aquasecurity/trivy:{{ .Version }}'
+    - 'nikpivkin/trivy:{{ .Version }}-amd64'
+    - 'nikpivkin/trivy:{{ .Version }}-arm64'
+    - 'nikpivkin/trivy:{{ .Version }}-s390x'
+    - 'nikpivkin/trivy:{{ .Version }}-ppc64le'
+  - name_template: 'ghcr.io/nikpivkin/trivy:{{ .Version }}'
     image_templates:
-    - 'ghcr.io/aquasecurity/trivy:{{ .Version }}-amd64'
-    - 'ghcr.io/aquasecurity/trivy:{{ .Version }}-arm64'
-    - 'ghcr.io/aquasecurity/trivy:{{ .Version }}-s390x'
-    - 'ghcr.io/aquasecurity/trivy:{{ .Version }}-ppc64le'
-  - name_template: 'public.ecr.aws/aquasecurity/trivy:{{ .Version }}'
-    image_templates:
-    - 'public.ecr.aws/aquasecurity/trivy:{{ .Version }}-amd64'
-    - 'public.ecr.aws/aquasecurity/trivy:{{ .Version }}-arm64'
-    - 'public.ecr.aws/aquasecurity/trivy:{{ .Version }}-s390x'
-    - 'public.ecr.aws/aquasecurity/trivy:{{ .Version }}-ppc64le'
+    - 'ghcr.io/nikpivkin/trivy:{{ .Version }}-amd64'
+    - 'ghcr.io/nikpivkin/trivy:{{ .Version }}-arm64'
+    - 'ghcr.io/nikpivkin/trivy:{{ .Version }}-s390x'
+    - 'ghcr.io/nikpivkin/trivy:{{ .Version }}-ppc64le'
   - name_template: 'aquasec/trivy:latest'
     image_templates:
     - 'aquasec/trivy:{{ .Version }}-amd64'
@@ -264,10 +250,10 @@ docker_manifests:
     - 'aquasec/trivy:{{ .Version }}-ppc64le'
   - name_template: 'ghcr.io/aquasecurity/trivy:latest'
     image_templates:
-    - 'ghcr.io/aquasecurity/trivy:{{ .Version }}-amd64'
-    - 'ghcr.io/aquasecurity/trivy:{{ .Version }}-arm64'
-    - 'ghcr.io/aquasecurity/trivy:{{ .Version }}-s390x'
-    - 'ghcr.io/aquasecurity/trivy:{{ .Version }}-ppc64le'
+    - 'ghcr.io/nikpivkin/trivy:{{ .Version }}-amd64'
+    - 'ghcr.io/nikpivkin/trivy:{{ .Version }}-arm64'
+    - 'ghcr.io/nikpivkin/trivy:{{ .Version }}-s390x'
+    - 'ghcr.io/nikpivkin/trivy:{{ .Version }}-ppc64le'
 
 signs:
 - cmd: cosign
