@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/xerrors"
 
-	awsScanner "github.com/aquasecurity/defsec/pkg/scanners/cloud/aws"
+	awsScanner "github.com/nikpivkin/trivy-cloud/pkg/scanners/aws"
 
 	awscommands "github.com/aquasecurity/trivy/pkg/cloud/aws/commands"
 	"github.com/aquasecurity/trivy/pkg/commands/artifact"

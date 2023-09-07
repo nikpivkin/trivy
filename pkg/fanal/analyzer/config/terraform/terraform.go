@@ -3,10 +3,10 @@ package terraform
 import (
 	"os"
 
-	"github.com/aquasecurity/defsec/pkg/detection"
 	"github.com/aquasecurity/trivy/pkg/fanal/analyzer"
 	"github.com/aquasecurity/trivy/pkg/fanal/analyzer/config"
 	"github.com/aquasecurity/trivy/pkg/misconf"
+	"github.com/nikpivkin/trivy-iac/pkg/detection"
 )
 
 const (

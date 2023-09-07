@@ -5,8 +5,8 @@ import (
 
 	"github.com/samber/lo"
 
-	defsecRules "github.com/aquasecurity/defsec/pkg/rules"
 	"github.com/aquasecurity/trivy/pkg/fanal/types"
+	trivyRules "github.com/simar7/trivy-misconf-rules/pkg/rules"
 )
 
 var (
@@ -80,9 +80,9 @@ const (
 )
 
 // This function is exported for trivy-plugin-aqua purposes only
-func GetSecretRulesMetadata() []defsecRules.Check {
-	return lo.Map(builtinRules, func(rule Rule, i int) defsecRules.Check {
-		return defsecRules.Check{
+func GetSecretRulesMetadata() []trivyRules.Check {
+	return lo.Map(builtinRules, func(rule Rule, i int) trivyRules.Check {
+		return trivyRules.Check{
 			Name:        rule.ID,
 			Description: rule.Title,
 		}

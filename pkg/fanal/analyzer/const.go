@@ -1,6 +1,6 @@
 package analyzer
 
-import "github.com/aquasecurity/defsec/pkg/detection"
+import "github.com/nikpivkin/trivy-iac/pkg/detection"
 
 type Type string
 
