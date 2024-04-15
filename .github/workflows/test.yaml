@@ -13,7 +13,7 @@ jobs:
     runs-on: ${{ matrix.operating-system }}
     strategy:
       matrix:
-        operating-system: [ubuntu-latest, windows-latest, macos-latest]
+        operating-system: [ubuntu-latest, windows-latest, macos-14]
     steps:
       - name: Maximize build space
         uses: easimon/maximize-build-space@v10
@@ -178,7 +178,7 @@ jobs:
     runs-on: ${{ matrix.operating-system }}
     strategy:
       matrix:
-        operating-system: [ubuntu-latest, windows-latest, macos-latest]
+        operating-system: [ubuntu-latest, windows-latest, macos-14]
     env:
       DOCKER_CLI_EXPERIMENTAL: "enabled"
     steps:
@@ -206,7 +206,7 @@ jobs:
       run: |
         if [ "${{ matrix.operating-system }}" == "windows-latest" ]; then
           echo "id=--id build-windows" >> $GITHUB_OUTPUT
-        elif [ "${{ matrix.operating-system }}" == "macos-latest" ]; then
+        elif [ "${{ matrix.operating-system }}" == "macos-14" ]; then
           echo "id=--id build-macos --id build-bsd" >> $GITHUB_OUTPUT
         else
           echo "id=--id build-linux" >> $GITHUB_OUTPUT
