@@ -177,6 +177,10 @@ func GetInputsContents(inputs []Input) []any {
 }
 
 func (s *Scanner) ScanInput(ctx context.Context, inputs ...Input) (scan.Results, error) {
+	return s.scanInput(ctx, s.sourceType, inputs...)
+}
+
+func (s *Scanner) scanInput(ctx context.Context, sourceType types.Source, inputs ...Input) (scan.Results, error) {
 
 	s.logger.Debug("Scanning inputs", "count", len(inputs))
 
@@ -210,7 +214,7 @@ func (s *Scanner) ScanInput(ctx context.Context, inputs ...Input) (scan.Results,
 			continue // skip deprecated checks
 		}
 
-		if isPolicyWithSubtype(s.sourceType) {
+		if isPolicyWithSubtype(sourceType) {
 			// skip if check isn't relevant to what is being scanned
 			if !isPolicyApplicable(staticMeta, inputs...) {
 				continue
