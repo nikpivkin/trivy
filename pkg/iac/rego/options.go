@@ -129,3 +129,12 @@ func WithTrivyVersion(version string) options.ScannerOption {
 		}
 	}
 }
+
+// WithEvalMode sets the scanner's evaluation mode (Rego or IR).
+func WithEvalMode(mode EvalMode) options.ScannerOption {
+	return func(s options.ConfigurableScanner) {
+		if ss, ok := s.(*Scanner); ok {
+			ss.mode = mode
+		}
+	}
+}

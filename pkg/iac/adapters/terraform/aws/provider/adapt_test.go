@@ -41,8 +41,6 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Environment = "Local"
-      Name        = "LocalStack"
     }
   }
 }`,

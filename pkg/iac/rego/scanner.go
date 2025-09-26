@@ -3,16 +3,24 @@ package rego
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	"crypto/rand"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"fmt"
 	"io"
 	"io/fs"
+	"net/url"
+	"os"
 	"slices"
 	"strings"
 
+	fjson "github.com/open-policy-agent/eopa/pkg/json"
+	"github.com/open-policy-agent/eopa/pkg/vm"
 	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/open-policy-agent/opa/v1/ir"
 	"github.com/open-policy-agent/opa/v1/rego"
 	"github.com/open-policy-agent/opa/v1/storage"
+	"github.com/open-policy-agent/opa/v1/topdown/builtins"
 	"github.com/open-policy-agent/opa/v1/util"
 	"github.com/samber/lo"
 
@@ -24,6 +32,24 @@ import (
 	"github.com/aquasecurity/trivy/pkg/log"
 	"github.com/aquasecurity/trivy/pkg/set"
 )
+
+type EvalMode int
+
+const (
+	Rego EvalMode = iota
+	IR
+)
+
+func (m EvalMode) String() string {
+	switch m {
+	case Rego:
+		return "Rego"
+	case IR:
+		return "IR"
+	default:
+		return fmt.Sprintf("EvalMode(%d)", int(m))
+	}
+}
 
 var checkTypesWithSubtype = set.New(types.SourceCloud, types.SourceDefsec, types.SourceKubernetes)
 
@@ -67,13 +93,17 @@ type Scanner struct {
 	embeddedLibs   map[string]*ast.Module
 	embeddedChecks map[string]*ast.Module
 	customSchemas  map[string][]byte
+
+	mode   EvalMode
+	regoVM *vm.VM
 }
 
 func (s *Scanner) trace(heading string, input any) {
 	if s.traceWriter == nil {
 		return
 	}
-	data, err := json.MarshalIndent(input, "", "  ")
+	// TODO: ident
+	data, err := json.Marshal(input)
 	if err != nil {
 		return
 	}
@@ -88,9 +118,24 @@ type DynamicMetadata struct {
 	EndLine   int
 }
 
-func NewScanner(opts ...options.ScannerOption) *Scanner {
-	LoadAndRegister()
+func unmarshalURL(dec *jsontext.Decoder, u *url.URL) error {
+	if dec.PeekKind() != '"' {
+		return json.SkipFunc
+	}
+	jval, err := dec.ReadValue()
+	if err != nil {
+		return err
+	}
 
+	parsed, err := url.Parse(string(jval)[1:len(jval)])
+	if err != nil {
+		return err
+	}
+	*u = *parsed
+	return nil
+}
+
+func NewScanner(opts ...options.ScannerOption) *Scanner {
 	s := &Scanner{
 		regoErrorLimit: ast.CompileErrorLimitDefault,
 		ruleNamespaces: builtinNamespaces.Clone(),
@@ -98,10 +143,37 @@ func NewScanner(opts ...options.ScannerOption) *Scanner {
 		logger:         log.WithPrefix("rego"),
 		customSchemas:  make(map[string][]byte),
 		moduleMetadata: make(map[string]*StaticMetadata),
+		mode:           Rego,
 	}
 
 	for _, opt := range opts {
 		opt(s)
+	}
+
+	switch s.mode {
+	case IR:
+		// TODO: handle errors
+		policyBytes := lo.Must(os.ReadFile("/Users/nikita/projects/trivy-checks/bundle/ir/plan.json"))
+		var irPolicy *ir.Policy
+		lo.Must0(json.Unmarshal(policyBytes, &irPolicy))
+		executable := lo.Must(vm.NewCompiler().WithPolicy(irPolicy).Compile())
+		s.regoVM = vm.NewVM().WithExecutable(executable)
+
+		annotationsBytes := lo.Must(os.ReadFile("/Users/nikita/projects/trivy-checks/bundle/ir/metadata.json"))
+		var annotations map[string]*ast.Annotations
+		lo.Must0(json.Unmarshal(annotationsBytes, &annotations,
+			json.WithUnmarshalers(json.UnmarshalFromFunc(unmarshalURL))),
+		)
+
+		for modulePkg, annot := range annotations {
+			moduleMeta, err := MetadataFromAnnotatins(modulePkg, annot)
+			if err != nil {
+				continue
+			}
+			s.moduleMetadata[modulePkg] = moduleMeta
+		}
+	case Rego:
+		LoadAndRegister()
 	}
 
 	s.moduleFilters = append(
@@ -113,7 +185,7 @@ func NewScanner(opts ...options.ScannerOption) *Scanner {
 	return s
 }
 
-func (s *Scanner) runQuery(ctx context.Context, query string, input ast.Value, disableTracing bool) (rego.ResultSet, []string, error) {
+func (s *Scanner) runQuery(ctx context.Context, query string, input ast.Value, disableTracing bool) ([]any, []string, error) {
 
 	trace := (s.traceWriter != nil || s.tracePerResult) && !disableTracing
 
@@ -148,7 +220,68 @@ func (s *Scanner) runQuery(ctx context.Context, query string, input ast.Value, d
 			traces = strings.Split(traceBuffer.String(), "\n")
 		}
 	}
-	return resultSet, traces, nil
+
+	var rawResults []any
+	for _, result := range resultSet {
+		for _, expression := range result.Expressions {
+			values, ok := expression.Value.([]any)
+			if !ok {
+				values = []any{expression.Value}
+			}
+			rawResults = append(rawResults, values...)
+		}
+	}
+	return rawResults, traces, nil
+}
+
+func (s *Scanner) runPlan(ctx context.Context, name string, rawInput fjson.Json) ([]any, []string, error) {
+	input := any(rawInput)
+	evalResult, err := s.regoVM.Eval(ctx, name, vm.EvalOpts{
+		Input:    &input,
+		Seed:     rand.Reader,
+		Cache:    builtins.Cache{},
+		NDBCache: builtins.NDBCache{},
+		Runtime:  s.runtimeValues.Value,
+		Limits:   &vm.DefaultLimits,
+	})
+	if err != nil {
+		return nil, nil, fmt.Errorf("execute plan: %w", err)
+	}
+
+	resultJSON, err := ast.JSON(evalResult)
+	if err != nil {
+		return nil, nil, fmt.Errorf("convert Go value to JSON: %w", err)
+	}
+
+	results, err := extractResultArray(resultJSON)
+	if err != nil {
+		return nil, nil, err
+	}
+	return results, nil, nil
+}
+
+func extractResultArray(resultJSON any) ([]any, error) {
+	resultsRaw, ok := resultJSON.([]any)
+	if !ok || len(resultsRaw) == 0 {
+		return nil, fmt.Errorf("unexpected result format: expected non-empty array")
+	}
+
+	firstItem, ok := resultsRaw[0].(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("unexpected result format: first item is not a map")
+	}
+
+	resultField, ok := firstItem["result"]
+	if !ok {
+		return nil, fmt.Errorf("missing 'result' field in evaluation output")
+	}
+
+	results, ok := resultField.([]any)
+	if !ok {
+		return nil, fmt.Errorf("'result' field is not an array")
+	}
+
+	return results, nil
 }
 
 type Input struct {
@@ -156,8 +289,11 @@ type Input struct {
 	FS       fs.FS  `json:"-"`
 	Contents any    `json:"contents"`
 
-	// parsed is the parsed input value for the rego query
-	parsed ast.Value
+	// parsedAst is the parsed input value for the Rego query
+	parsedAst ast.Value
+
+	// /parsedJson is the parsed input value used by eopa in IR mode
+	parsedJson fjson.Json
 }
 
 func GetInputsContents(inputs []Input) []any {
@@ -176,39 +312,55 @@ func (s *Scanner) ScanInput(ctx context.Context, sourceType types.Source, inputs
 		return nil, nil
 	}
 
+	if s.mode == IR {
+		// Necessary to avoid a panic from the VM
+		_, ctx = vm.WithStatistics(ctx)
+	}
+
 	inputs = lo.FilterMap(inputs, func(input Input, _ int) (Input, bool) {
 		s.trace("INPUT", input)
-		parsed, err := parseRawInput(input.Contents)
+
+		var err error
+		switch s.mode {
+		case IR:
+			var parsed fjson.Json
+			do := vm.DataOperations{}
+			parsed, err = do.FromInterface(context.Background(), input.Contents)
+			if err == nil {
+				input.parsedJson = parsed
+			}
+		case Rego:
+			var parsedAst ast.Value
+			parsedAst, err = parseRawInput(input.Contents)
+			if err == nil {
+				input.parsedAst = parsedAst
+			}
+		}
+
 		if err != nil {
-			s.logger.Error("Failed to parse input", log.FilePath(input.Path), log.Err(err))
+			s.logger.Error("Failed to parse input",
+				log.FilePath(input.Path),
+				log.Err(err),
+				log.String("mode", s.mode.String()),
+			)
 			return input, false
 		}
-		input.parsed = parsed
+
 		return input, true
 	})
 
 	var results scan.Results
 
-	for path, module := range s.policies {
+	for modulePkg, staticMeta := range s.moduleMetadata {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		default:
 		}
 
-		namespace := getModuleNamespace(module)
+		namespace := strings.TrimPrefix(modulePkg, "data.")
 		topLevel := strings.Split(namespace, ".")[0]
 		if !s.ruleNamespaces.Contains(topLevel) {
-			continue
-		}
-
-		staticMeta, err := s.metadataForModule(ctx, path, module, inputs)
-		if err != nil {
-			s.logger.Error(
-				"Error occurred while retrieving metadata from check",
-				log.FilePath(module.Package.Location.File),
-				log.Err(err),
-			)
 			continue
 		}
 
@@ -217,39 +369,51 @@ func (s *Scanner) ScanInput(ctx context.Context, sourceType types.Source, inputs
 			continue
 		}
 
-		usedRules := set.New[string]()
-
-		// all rules
-		for _, rule := range module.Rules {
-			ruleName := rule.Head.Name.String()
-			if usedRules.Contains(ruleName) {
-				continue
+		evalRule := func(ruleName string) {
+			ruleResults, err := s.applyRule(ctx, namespace, ruleName, inputs)
+			if err != nil {
+				s.logger.Error(
+					"Error occurred while applying rule from check",
+					log.String("rule", ruleName),
+					log.String("package", modulePkg),
+					log.Err(err),
+				)
+				return
 			}
-			usedRules.Append(ruleName)
-			if isEnforcedRule(ruleName) {
-				ruleResults, err := s.applyRule(ctx, namespace, ruleName, inputs)
-				if err != nil {
-					s.logger.Error(
-						"Error occurred while applying rule from check",
-						log.String("rule", ruleName),
-						log.FilePath(module.Package.Location.File),
-						log.Err(err),
-					)
-					continue
-				}
-				results = append(results, s.embellishResultsWithRuleMetadata(ruleResults, *staticMeta)...)
-			}
+			results = append(results, s.embellishResultsWithRuleMetadata(ruleResults, *staticMeta)...)
 		}
 
+		switch s.mode {
+		case IR:
+			evalRule("deny")
+		case Rego:
+			module, exists := s.policies[modulePkg]
+			if !exists {
+				break
+			}
+
+			uniqueRules := set.New[string]()
+			for _, rule := range module.Rules {
+				name := rule.Head.Name.String()
+				if !isEnforcedRule(name) {
+					continue
+				}
+				uniqueRules.Append(name)
+			}
+
+			for ruleName := range uniqueRules.Iter() {
+				evalRule(ruleName)
+			}
+		}
 	}
 
 	return results, nil
 }
 
 func (s *Scanner) metadataForModule(
-	ctx context.Context, path string, module *ast.Module, inputs []Input,
+	ctx context.Context, module *ast.Module, inputs []Input,
 ) (*StaticMetadata, error) {
-	if metadata, exists := s.moduleMetadata[path]; exists {
+	if metadata, exists := s.moduleMetadata[module.Package.Path.String()]; exists {
 		return metadata, nil
 	}
 
@@ -343,15 +507,33 @@ func parseRawInput(input any) (ast.Value, error) {
 
 func (s *Scanner) applyRule(ctx context.Context, namespace, rule string, inputs []Input) (scan.Results, error) {
 	var results scan.Results
-	qualified := fmt.Sprintf("data.%s.%s", namespace, rule)
+	query := fmt.Sprintf("data.%s.%s", namespace, rule)
 	for _, input := range inputs {
 
-		resultSet, traces, err := s.runQuery(ctx, qualified, input.parsed, false)
+		var (
+			rawResults []any
+			traces     []string
+			err        error
+		)
+
+		switch s.mode {
+		case Rego:
+			rawResults, traces, err = s.runQuery(ctx, query, input.parsedAst, false)
+		case IR:
+			// Convert the Rego query into an IR entrypoint:
+			// Rego uses dot notation with "data." prefix (e.g. data.aws.s3.bucket),
+			// while the IR VM expects a slash-separated entrypoint without the prefix (e.g. aws/s3/bucket).
+			entrypoint := strings.TrimPrefix(query, "data.")
+			entrypoint = strings.ReplaceAll(entrypoint, ".", "/")
+			rawResults, traces, err = s.runPlan(ctx, entrypoint, input.parsedJson)
+		}
+
 		if err != nil {
 			return nil, err
 		}
-		s.trace("RESULTSET", resultSet)
-		ruleResults := s.convertResults(resultSet, input, namespace, rule, traces)
+
+		s.trace("RESULTSET", rawResults)
+		ruleResults := s.convertResults(rawResults, input, namespace, rule, traces)
 		if len(ruleResults) == 0 { // It passed because we didn't find anything wrong (NOT because it didn't exist)
 			var result regoResult
 			result.FS = input.FS

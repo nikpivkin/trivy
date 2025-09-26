@@ -54,7 +54,7 @@ func (s *Scanner) loadPoliciesFromReaders(readers []io.Reader) (map[string]*ast.
 		if err != nil {
 			return nil, err
 		}
-		modules[moduleName] = module
+		modules[module.Package.Path.String()] = module
 	}
 	return modules, nil
 }
@@ -77,7 +77,11 @@ func (s *Scanner) loadEmbedded() error {
 	return nil
 }
 
+// TODO: load to slice
 func (s *Scanner) LoadPolicies(srcFS fs.FS) error {
+	if s.mode != Rego {
+		return nil
+	}
 
 	if s.policies == nil {
 		s.policies = make(map[string]*ast.Module)
@@ -196,13 +200,13 @@ func (s *Scanner) findMatchedEmbeddedCheck(badPolicy *ast.Module) *ast.Module {
 		}
 	}
 
-	badPolicyMeta, err := MetadataFromAnnotations(badPolicy)
+	badPolicyMeta, err := MetadataFromModule(badPolicy)
 	if err != nil || badPolicyMeta == nil {
 		return nil
 	}
 
 	for _, embeddedCheck := range s.embeddedChecks {
-		meta, err := MetadataFromAnnotations(embeddedCheck)
+		meta, err := MetadataFromModule(embeddedCheck)
 		if err != nil || meta == nil {
 			continue
 		}
@@ -283,7 +287,7 @@ func (s *Scanner) handleModulesMetadata(path string, module *ast.Module) {
 		return
 	}
 
-	metadata, err := MetadataFromAnnotations(module)
+	metadata, err := MetadataFromModule(module)
 	if err != nil {
 		s.logger.Error(
 			"Failed to retrieve metadata from annotations",
@@ -293,7 +297,7 @@ func (s *Scanner) handleModulesMetadata(path string, module *ast.Module) {
 		return
 	}
 
-	s.moduleMetadata[path] = metadata
+	s.moduleMetadata[module.Package.Path.String()] = metadata
 }
 
 // moduleHasLegacyMetadataFormat checks if the module has a legacy metadata format.
@@ -319,7 +323,7 @@ func (s *Scanner) filterModules() error {
 	filtered := make(map[string]*ast.Module)
 
 	for name, module := range s.policies {
-		metadata, err := s.metadataForModule(context.Background(), name, module, nil)
+		metadata, err := s.metadataForModule(context.Background(), module, nil)
 		if err != nil {
 			return fmt.Errorf("retrieve metadata for module %s: %w", name, err)
 		}

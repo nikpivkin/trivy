@@ -311,3 +311,87 @@ func buildFS(files map[string]string) fs.FS {
 		return &fstest.MapFile{Data: []byte(val)}
 	}))
 }
+
+var bfsys = fstest.MapFS{
+	"main.yaml": &fstest.MapFile{Data: []byte(`apiVersion: v1
+kind: Namespace
+metadata:
+  name: my-namespace
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-config
+  namespace: my-namespace
+data:
+  log_level: debug
+  app_mode: production
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+  namespace: my-namespace
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+        - name: app
+          image: nginx:1.25
+          ports:
+            - containerPort: 80
+          env:
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: my-config
+                  key: log_level
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-app-service
+  namespace: my-namespace
+spec:
+  selector:
+    app: my-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+`)},
+}
+
+func BenchmarkNative(b *testing.B) {
+	scanner := kubernetes.NewScanner(
+		rego.WithEmbeddedPolicies(true),
+		rego.WithEmbeddedLibraries(true),
+	)
+
+	b.ResetTimer()
+	for b.Loop() {
+		scanner.ScanFS(b.Context(), bfsys, ".")
+	}
+}
+
+func BenchmarkIR(b *testing.B) {
+	scanner := kubernetes.NewScanner(
+		rego.WithEmbeddedPolicies(true),
+		rego.WithEmbeddedLibraries(true),
+		rego.WithEvalMode(rego.IR),
+	)
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		scanner.ScanFS(b.Context(), bfsys, ".")
+	}
+}

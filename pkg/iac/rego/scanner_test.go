@@ -1107,3 +1107,37 @@ deny {
 		})
 	}
 }
+
+func BenchmarkNative(b *testing.B) {
+	scanner := rego.NewScanner(
+		rego.WithEmbeddedPolicies(true),
+		rego.WithEmbeddedLibraries(true),
+	)
+	scanner.LoadPolicies(nil)
+
+	b.ResetTimer()
+	for b.Loop() {
+		scanner.ScanInput(b.Context(), types.SourceCloud, rego.Input{
+			Path:     "test.tf",
+			Contents: nil,
+		})
+	}
+}
+
+func BenchmarkIR(b *testing.B) {
+	scanner := rego.NewScanner(
+		rego.WithEvalMode(rego.IR),
+		rego.WithEmbeddedPolicies(true),
+		rego.WithEmbeddedLibraries(true),
+	)
+	scanner.LoadPolicies(nil)
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		scanner.ScanInput(b.Context(), types.SourceCloud, rego.Input{
+			Path:     "test.tf",
+			Contents: nil,
+		})
+	}
+}

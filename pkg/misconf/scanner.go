@@ -234,6 +234,7 @@ func initRegoOptions(opt ScannerOption) ([]options.ScannerOption, error) {
 		rego.WithEmbeddedLibraries(!opt.DisableEmbeddedLibraries),
 		rego.WithIncludeDeprecatedChecks(opt.IncludeDeprecatedChecks),
 		rego.WithTrivyVersion(app.Version()),
+		rego.WithEvalMode(rego.IR),
 	}
 
 	policyFS, policyPaths, err := CreatePolicyFS(opt.PolicyPaths)

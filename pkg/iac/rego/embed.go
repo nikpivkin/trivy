@@ -101,7 +101,7 @@ func LoadPoliciesFromDirs(target fs.FS, paths ...string) (map[string]*ast.Module
 			if err != nil {
 				return fmt.Errorf("failed to parse Rego module: %w", err)
 			}
-			modules[path] = module
+			modules[module.Package.Path.String()] = module
 			return nil
 		}); err != nil {
 			return nil, err

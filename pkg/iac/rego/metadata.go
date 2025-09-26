@@ -292,19 +292,24 @@ func (sm *StaticMetadata) ToRule() scan.Rule {
 	}
 }
 
-func MetadataFromAnnotations(module *ast.Module) (*StaticMetadata, error) {
-	if annotations := findPackageAnnotations(module); annotations != nil {
-		input, err := inputFromAnnotations(annotations)
-		if err != nil {
-			return nil, fmt.Errorf("retrieve input from annotations: %w", err)
-		}
-		metadata := NewStaticMetadata(module.Package.Path.String(), input)
-		if err := metadata.FromAnnotations(annotations); err != nil {
-			return nil, err
-		}
-		return metadata, nil
+func MetadataFromModule(module *ast.Module) (*StaticMetadata, error) {
+	annotations := findPackageAnnotations(module)
+	if annotations == nil {
+		return nil, nil
 	}
-	return nil, nil
+	return MetadataFromAnnotatins(module.Package.Path.String(), annotations)
+}
+
+func MetadataFromAnnotatins(modulePkg string, annotations *ast.Annotations) (*StaticMetadata, error) {
+	input, err := inputFromAnnotations(annotations)
+	if err != nil {
+		return nil, fmt.Errorf("retrieve input from annotations: %w", err)
+	}
+	metadata := NewStaticMetadata(modulePkg, input)
+	if err := metadata.FromAnnotations(annotations); err != nil {
+		return nil, err
+	}
+	return metadata, nil
 }
 
 func inputFromAnnotations(annotations *ast.Annotations) (InputOptions, error) {
@@ -335,7 +340,7 @@ func NewMetadataRetriever(compiler *ast.Compiler) *MetadataRetriever {
 
 func (m *MetadataRetriever) RetrieveMetadata(ctx context.Context, module *ast.Module, contents ...any) (*StaticMetadata, error) {
 	// read metadata from official rego annotations if possible
-	if metadata, err := MetadataFromAnnotations(module); err != nil {
+	if metadata, err := MetadataFromModule(module); err != nil {
 		return nil, fmt.Errorf("retrieve metadata from annotations: %w", err)
 	} else if metadata != nil {
 		return metadata, nil

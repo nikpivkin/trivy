@@ -318,7 +318,7 @@ package user.test`,
 			})
 			require.NoError(t, err)
 
-			metadata, err := MetadataFromAnnotations(module)
+			metadata, err := MetadataFromModule(module)
 			if tt.wantErr != "" {
 				require.ErrorContains(t, err, tt.wantErr)
 				return

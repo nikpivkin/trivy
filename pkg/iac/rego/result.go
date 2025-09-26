@@ -5,8 +5,6 @@ import (
 	"io/fs"
 	"strconv"
 
-	"github.com/open-policy-agent/opa/v1/rego"
-
 	"github.com/aquasecurity/trivy/pkg/iac/scan"
 	iacTypes "github.com/aquasecurity/trivy/pkg/iac/types"
 )
@@ -121,7 +119,7 @@ func parseLineNumber(raw any) int {
 	return n
 }
 
-func (s *Scanner) convertResults(resultSet rego.ResultSet, input Input, namespace, rule string, traces []string) scan.Results {
+func (s *Scanner) convertResults(rawResults []any, input Input, namespace, rule string, traces []string) scan.Results {
 	var results scan.Results
 
 	offset := 0
@@ -136,27 +134,19 @@ func (s *Scanner) convertResults(resultSet rego.ResultSet, input Input, namespac
 			}
 		}
 	}
-	for _, result := range resultSet {
-		for _, expression := range result.Expressions {
-			values, ok := expression.Value.([]any)
-			if !ok {
-				values = []any{expression.Value}
-			}
 
-			for _, value := range values {
-				regoResult := parseResult(value)
-				regoResult.FS = input.FS
-				if regoResult.Filepath == "" && input.Path != "" {
-					regoResult.Filepath = input.Path
-				}
-				if regoResult.Message == "" {
-					regoResult.Message = fmt.Sprintf("Rego check rule: %s.%s", namespace, rule)
-				}
-				regoResult.StartLine += offset
-				regoResult.EndLine += offset
-				results.AddRego(regoResult.Message, namespace, rule, traces, regoResult)
-			}
+	for _, rawResult := range rawResults {
+		regoResult := parseResult(rawResult)
+		regoResult.FS = input.FS
+		if regoResult.Filepath == "" && input.Path != "" {
+			regoResult.Filepath = input.Path
 		}
+		if regoResult.Message == "" {
+			regoResult.Message = fmt.Sprintf("Rego check rule: %s.%s", namespace, rule)
+		}
+		regoResult.StartLine += offset
+		regoResult.EndLine += offset
+		results.AddRego(regoResult.Message, namespace, rule, traces, regoResult)
 	}
 	return results
 }
