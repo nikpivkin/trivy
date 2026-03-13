@@ -135,15 +135,6 @@ func (m Metadata) Root() Metadata {
 	return *meta
 }
 
-func (m Metadata) WithInternal(internal any) Metadata {
-	m.internal = internal
-	return m
-}
-
-func (m Metadata) Internal() any {
-	return m.internal
-}
-
 func (m Metadata) IsMultiLine() bool {
 	return m.rnge.GetStartLine() < m.rnge.GetEndLine()
 }
