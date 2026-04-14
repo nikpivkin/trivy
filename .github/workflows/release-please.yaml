@@ -3,7 +3,7 @@ name: Release Please
 on:
   push:
     branches:
-      - main
+      - main-test
       - 'release/v*'
   workflow_dispatch:
     inputs:
