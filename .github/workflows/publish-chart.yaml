@@ -68,7 +68,7 @@ jobs:
         run: |
           gh workflow run publish-chart.yaml \
             --repo "$GITHUB_REPOSITORY_OWNER/helm-charts" \
-            --ref main \
+            --ref test/trivy-release-test \
             --field "repository=$GITHUB_REPOSITORY" \
             --field "ref=$REF" \
             --field "chart_dir=helm/trivy"

@@ -31,7 +31,7 @@ jobs:
         run: |
           gh workflow run deploy-packages.yml \
             --repo "$GITHUB_REPOSITORY_OWNER/trivy-repo" \
-            --ref main \
+            --ref test/trivy-release-test \
             --field "version=$GITHUB_REF_NAME"
 
   # `update-chart-version` creates a new PR for updating the helm chart
@@ -77,7 +77,7 @@ jobs:
         run: |
           gh workflow run update_version.yml \
             --repo "$GITHUB_REPOSITORY_OWNER/trivy-telemetry" \
-            --ref main \
+            --ref test/trivy-release-test \
             --field "version=$GITHUB_REF_NAME"
 
       - name: Trigger update_version workflow in trivy-downloads
@@ -89,7 +89,7 @@ jobs:
         run: |
           gh workflow run update_version.yml \
             --repo "$GITHUB_REPOSITORY_OWNER/trivy-downloads" \
-            --ref main \
+            --ref test/trivy-release-test \
             --field "version=$GITHUB_REF_NAME" \
             --field artifact=trivy
 
@@ -102,7 +102,7 @@ jobs:
         run: |
           gh workflow run release.yml \
             --repo "$GITHUB_REPOSITORY_OWNER/trivy-chocolatey" \
-            --ref main \
+            --ref test/trivy-release-test \
             --field "version=$GITHUB_REF_NAME"
 
       - name: Run version bump in trivy-action
@@ -115,5 +115,5 @@ jobs:
           VERSION="${GITHUB_REF_NAME#v}"
           gh workflow run bump-trivy.yaml \
             --repo "$GITHUB_REPOSITORY_OWNER/trivy-action" \
-            --ref master \
+            --ref test/trivy-release-test \
             --field "trivy_version=$VERSION"

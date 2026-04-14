@@ -56,5 +56,5 @@ jobs:
         run: |
           gh workflow run build-docs.yml \
             --repo "$GITHUB_REPOSITORY_OWNER/trivy-www" \
-            --ref main \
+            --ref test/trivy-release-test \
             --field "from_version=$GITHUB_REF_NAME"
