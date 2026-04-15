@@ -2,8 +2,8 @@ nameOverride: ""
 fullnameOverride: ""
 
 image:
-  registry: docker.io
-  repository: aquasec/trivy
+  registry: ghcr.io
+  repository: aquasecurity/trivy-release-test
   # tag is an override of the image tag, which is by default set by the
   # appVersion field in Chart.yaml.
   tag: ""
