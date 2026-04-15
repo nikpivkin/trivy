@@ -10,7 +10,7 @@ on:
       - reopened
       - closed
     branches:
-      - main
+      - main-test
     paths:
       - 'helm/trivy/**'
 env:
