@@ -2,7 +2,6 @@ package parser
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"errors"
 	"fmt"
 	"path"
@@ -98,10 +97,7 @@ func evaluateTemplateUnsafe(input string, variables vars.Vars) (string, error) {
 
 // newTemplate creates a new template from a string.
 func newTemplate(input string) (*minijinja.Template, error) {
-	sum := sha256.Sum256([]byte(input))
-	rootID := fmt.Sprintf("root-%x", sum)
-
-	tpl, err := templateEnv.TemplateFromNamedString(rootID, input)
+	tpl, err := templateEnv.TemplateFromString(input)
 	if err != nil {
 		return nil, xerrors.Errorf("create template: %w", err)
 	}
