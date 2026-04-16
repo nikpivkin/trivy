@@ -28,6 +28,10 @@ var (
 	})
 )
 
+func init() {
+	precomputeLowercaseKeywords(builtinRules)
+}
+
 const (
 	// DefaultBufferSize is the default chunk size for streaming secret scanning
 	// 64KB provides a good balance between memory usage and I/O efficiency
@@ -394,9 +398,6 @@ func NewScanner(config *Config, opts ...Option) Scanner {
 
 	// Use the default rules
 	if config == nil {
-		// Pre-compute lowercase keywords for builtin rules
-		precomputeLowercaseKeywords(builtinRules)
-
 		scanner.Global = &Global{
 			Rules:      builtinRules,
 			AllowRules: builtinAllowRules,
