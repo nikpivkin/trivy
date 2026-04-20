@@ -1101,6 +1101,238 @@ func TestSecretScanner(t *testing.T) {
 		Offset: 14,
 	}
 
+	azureSharedKey88 := strings.Repeat("*", 88)
+	azureSharedKey44 := strings.Repeat("*", 44)
+	azureDevOpsPAT52 := strings.Repeat("*", 52)
+
+	wantFindingAzureStorageAccountKey := types.SecretFinding{
+		RuleID:    "azure-storage-account-key",
+		Category:  secret.CategoryAzure,
+		Title:     "Azure Storage Account Key",
+		Severity:  "CRITICAL",
+		StartLine: 1,
+		EndLine:   1,
+		Match:     "AccountKey=" + azureSharedKey88,
+		Code: types.Code{
+			Lines: []types.Line{
+				{
+					Number:      1,
+					Content:     "AccountKey=" + azureSharedKey88,
+					Highlighted: "AccountKey=" + azureSharedKey88,
+					IsCause:     true,
+					FirstCause:  true,
+					LastCause:   true,
+				},
+			},
+		},
+		Offset: 11,
+	}
+	wantFindingAzureCosmosDBKey := types.SecretFinding{
+		RuleID:    "azure-cosmos-db-account-key",
+		Category:  secret.CategoryAzure,
+		Title:     "Azure Cosmos DB Account Key",
+		Severity:  "CRITICAL",
+		StartLine: 1,
+		EndLine:   1,
+		Match:     "a.cosmos.azure.com;AccountKey=" + azureSharedKey88,
+		Code: types.Code{
+			Lines: []types.Line{
+				{
+					Number:      1,
+					Content:     "a.cosmos.azure.com;AccountKey=" + azureSharedKey88,
+					Highlighted: "a.cosmos.azure.com;AccountKey=" + azureSharedKey88,
+					IsCause:     true,
+					FirstCause:  true,
+					LastCause:   true,
+				},
+			},
+		},
+		Offset: 54,
+	}
+	// azure-cosmos-db-account-key.txt also triggers the bare key rule since AccountKey= is present
+	wantFindingAzureStorageKeyInCosmosFile := types.SecretFinding{
+		RuleID:    "azure-storage-account-key",
+		Category:  secret.CategoryAzure,
+		Title:     "Azure Storage Account Key",
+		Severity:  "CRITICAL",
+		StartLine: 1,
+		EndLine:   1,
+		Match:     "a.cosmos.azure.com;AccountKey=" + azureSharedKey88,
+		Code: types.Code{
+			Lines: []types.Line{
+				{
+					Number:      1,
+					Content:     "a.cosmos.azure.com;AccountKey=" + azureSharedKey88,
+					Highlighted: "a.cosmos.azure.com;AccountKey=" + azureSharedKey88,
+					IsCause:     true,
+					FirstCause:  true,
+					LastCause:   true,
+				},
+			},
+		},
+		Offset: 54,
+	}
+	wantFindingAzureSASToken := types.SecretFinding{
+		RuleID:    "azure-sas-token",
+		Category:  secret.CategoryAzure,
+		Title:     "Azure Shared Access Signature Token",
+		Severity:  "HIGH",
+		StartLine: 1,
+		EndLine:   1,
+		Match:     "1T00%3A00%3A00Z&spr=https&sig=" + azureSharedKey44,
+		Code: types.Code{
+			Lines: []types.Line{
+				{
+					Number:      1,
+					Content:     "1T00%3A00%3A00Z&spr=https&sig=" + azureSharedKey44,
+					Highlighted: "1T00%3A00%3A00Z&spr=https&sig=" + azureSharedKey44,
+					IsCause:     true,
+					FirstCause:  true,
+					LastCause:   true,
+				},
+			},
+		},
+		Offset: 66,
+	}
+	wantFindingAzureDevOpsPAT := types.SecretFinding{
+		RuleID:    "azure-devops-pat",
+		Category:  secret.CategoryAzure,
+		Title:     "Azure DevOps Personal Access Token",
+		Severity:  "HIGH",
+		StartLine: 1,
+		EndLine:   1,
+		Match:     "AZURE_DEVOPS_TOKEN=" + azureDevOpsPAT52,
+		Code: types.Code{
+			Lines: []types.Line{
+				{
+					Number:      1,
+					Content:     "AZURE_DEVOPS_TOKEN=" + azureDevOpsPAT52,
+					Highlighted: "AZURE_DEVOPS_TOKEN=" + azureDevOpsPAT52,
+					IsCause:     true,
+					FirstCause:  true,
+					LastCause:   true,
+				},
+			},
+		},
+		Offset: 19,
+	}
+
+	azureEntraSecret := strings.Repeat("*", 40)
+	azureStructuredToken := strings.Repeat("*", 84)
+	azureACRPassword := strings.Repeat("*", 32)
+	azureAppConfigSecret := strings.Repeat("*", 36)
+
+	wantFindingAzureEntraClientSecret := types.SecretFinding{
+		RuleID:    "azure-entra-client-secret",
+		Category:  secret.CategoryAzure,
+		Title:     "Azure Entra ID Client Secret",
+		Severity:  "CRITICAL",
+		StartLine: 1,
+		EndLine:   1,
+		Match:     "client_secret=" + azureEntraSecret,
+		Code: types.Code{
+			Lines: []types.Line{
+				{
+					Number:      1,
+					Content:     "client_secret=" + azureEntraSecret,
+					Highlighted: "client_secret=" + azureEntraSecret,
+					IsCause:     true,
+					FirstCause:  true,
+					LastCause:   true,
+				},
+			},
+		},
+		Offset: 14,
+	}
+	wantFindingAzureContainerRegistryCredential := types.SecretFinding{
+		RuleID:    "azure-container-registry-credential",
+		Category:  secret.CategoryAzure,
+		Title:     "Azure Container Registry Credential",
+		Severity:  "CRITICAL",
+		StartLine: 1,
+		EndLine:   1,
+		Match:     azureStructuredToken,
+		Code: types.Code{
+			Lines: []types.Line{
+				{
+					Number:      1,
+					Content:     azureStructuredToken,
+					Highlighted: azureStructuredToken,
+					IsCause:     true,
+					FirstCause:  true,
+					LastCause:   true,
+				},
+			},
+		},
+		Offset: 0,
+	}
+	wantFindingAzureContainerRegistryPassword := types.SecretFinding{
+		RuleID:    "azure-container-registry-password",
+		Category:  secret.CategoryAzure,
+		Title:     "Azure Container Registry Password",
+		Severity:  "CRITICAL",
+		StartLine: 1,
+		EndLine:   1,
+		Match:     "myregistry.azurecr.io password: " + azureACRPassword,
+		Code: types.Code{
+			Lines: []types.Line{
+				{
+					Number:      1,
+					Content:     "myregistry.azurecr.io password: " + azureACRPassword,
+					Highlighted: "myregistry.azurecr.io password: " + azureACRPassword,
+					IsCause:     true,
+					FirstCause:  true,
+					LastCause:   true,
+				},
+			},
+		},
+		Offset: 32,
+	}
+	wantFindingAzureAppConfigConnectionString := types.SecretFinding{
+		RuleID:    "azure-app-config-connection-string",
+		Category:  secret.CategoryAzure,
+		Title:     "Azure App Configuration Connection String",
+		Severity:  "CRITICAL",
+		StartLine: 1,
+		EndLine:   1,
+		Match:     "Endpoint=https://mystore.azconfig.io;Id=iLiM;Secret=" + azureAppConfigSecret,
+		Code: types.Code{
+			Lines: []types.Line{
+				{
+					Number:      1,
+					Content:     "Endpoint=https://mystore.azconfig.io;Id=iLiM;Secret=" + azureAppConfigSecret,
+					Highlighted: "Endpoint=https://mystore.azconfig.io;Id=iLiM;Secret=" + azureAppConfigSecret,
+					IsCause:     true,
+					FirstCause:  true,
+					LastCause:   true,
+				},
+			},
+		},
+		Offset: 52,
+	}
+	wantFindingAzureAIServicesKey := types.SecretFinding{
+		RuleID:    "azure-ai-services-key",
+		Category:  secret.CategoryAzure,
+		Title:     "Azure AI Services Key",
+		Severity:  "HIGH",
+		StartLine: 1,
+		EndLine:   1,
+		Match:     azureStructuredToken,
+		Code: types.Code{
+			Lines: []types.Line{
+				{
+					Number:      1,
+					Content:     azureStructuredToken,
+					Highlighted: azureStructuredToken,
+					IsCause:     true,
+					FirstCause:  true,
+					LastCause:   true,
+				},
+			},
+		},
+		Offset: 0,
+	}
+
 	tests := []struct {
 		name          string
 		configPath    string
@@ -1580,6 +1812,90 @@ func TestSecretScanner(t *testing.T) {
 			want: types.Secret{
 				FilePath: filepath.Join("testdata", "obfuscated.js"),
 				Findings: []types.SecretFinding{wantFindingTokenInsideJs},
+			},
+		},
+		{
+			name:          "find Azure Storage Account Key",
+			configPath:    filepath.Join("testdata", "skip-test.yaml"),
+			inputFilePath: filepath.Join("testdata", "azure-storage-account-key.txt"),
+			want: types.Secret{
+				FilePath: filepath.Join("testdata", "azure-storage-account-key.txt"),
+				Findings: []types.SecretFinding{wantFindingAzureStorageAccountKey},
+			},
+		},
+		{
+			name:          "find Azure Cosmos DB Account Key",
+			configPath:    filepath.Join("testdata", "skip-test.yaml"),
+			inputFilePath: filepath.Join("testdata", "azure-cosmos-db-account-key.txt"),
+			want: types.Secret{
+				FilePath: filepath.Join("testdata", "azure-cosmos-db-account-key.txt"),
+				Findings: []types.SecretFinding{
+					wantFindingAzureCosmosDBKey,
+					wantFindingAzureStorageKeyInCosmosFile,
+				},
+			},
+		},
+		{
+			name:          "find Azure SAS Token",
+			configPath:    filepath.Join("testdata", "skip-test.yaml"),
+			inputFilePath: filepath.Join("testdata", "azure-sas-token.txt"),
+			want: types.Secret{
+				FilePath: filepath.Join("testdata", "azure-sas-token.txt"),
+				Findings: []types.SecretFinding{wantFindingAzureSASToken},
+			},
+		},
+		{
+			name:          "find Azure DevOps PAT",
+			configPath:    filepath.Join("testdata", "skip-test.yaml"),
+			inputFilePath: filepath.Join("testdata", "azure-devops-pat.txt"),
+			want: types.Secret{
+				FilePath: filepath.Join("testdata", "azure-devops-pat.txt"),
+				Findings: []types.SecretFinding{wantFindingAzureDevOpsPAT},
+			},
+		},
+		{
+			name:          "find Azure Entra ID Client Secret",
+			configPath:    filepath.Join("testdata", "skip-test.yaml"),
+			inputFilePath: filepath.Join("testdata", "azure-entra-client-secret.txt"),
+			want: types.Secret{
+				FilePath: filepath.Join("testdata", "azure-entra-client-secret.txt"),
+				Findings: []types.SecretFinding{wantFindingAzureEntraClientSecret},
+			},
+		},
+		{
+			name:          "find Azure Container Registry Credential",
+			configPath:    filepath.Join("testdata", "skip-test.yaml"),
+			inputFilePath: filepath.Join("testdata", "azure-container-registry-credential.txt"),
+			want: types.Secret{
+				FilePath: filepath.Join("testdata", "azure-container-registry-credential.txt"),
+				Findings: []types.SecretFinding{wantFindingAzureContainerRegistryCredential},
+			},
+		},
+		{
+			name:          "find Azure Container Registry Password",
+			configPath:    filepath.Join("testdata", "skip-test.yaml"),
+			inputFilePath: filepath.Join("testdata", "azure-container-registry-password.txt"),
+			want: types.Secret{
+				FilePath: filepath.Join("testdata", "azure-container-registry-password.txt"),
+				Findings: []types.SecretFinding{wantFindingAzureContainerRegistryPassword},
+			},
+		},
+		{
+			name:          "find Azure App Configuration Connection String",
+			configPath:    filepath.Join("testdata", "skip-test.yaml"),
+			inputFilePath: filepath.Join("testdata", "azure-app-config-connection-string.txt"),
+			want: types.Secret{
+				FilePath: filepath.Join("testdata", "azure-app-config-connection-string.txt"),
+				Findings: []types.SecretFinding{wantFindingAzureAppConfigConnectionString},
+			},
+		},
+		{
+			name:          "find Azure AI Services Key",
+			configPath:    filepath.Join("testdata", "skip-test.yaml"),
+			inputFilePath: filepath.Join("testdata", "azure-ai-services-key.txt"),
+			want: types.Secret{
+				FilePath: filepath.Join("testdata", "azure-ai-services-key.txt"),
+				Findings: []types.SecretFinding{wantFindingAzureAIServicesKey},
 			},
 		},
 		{
