@@ -71,6 +71,7 @@ var (
 	CategoryDocker               = types.SecretRuleCategory("Docker")
 	CategoryHuggingFace          = types.SecretRuleCategory("HuggingFace")
 	CategorySymfony              = types.SecretRuleCategory("Symfony")
+	CategoryAzure                = types.SecretRuleCategory("Azure")
 )
 
 // Reusable regex patterns
@@ -854,5 +855,59 @@ var builtinRules = []Rule{
 		Severity: "HIGH",
 		Regex:    MustCompile(`ThisTokenIsNotSoSecretChangeIt|ThisEzPlatformTokenIsNotSoSecret_PleaseChangeIt`),
 		Keywords: []string{"TokenIsNotSoSecret"},
+	},
+	{
+		ID:              "azure-storage-account-key",
+		Category:        CategoryAzure,
+		Title:           "Azure Storage Account Key",
+		Severity:        "CRITICAL",
+		Regex:           MustCompile(`AccountKey=(?P<secret>[A-Za-z0-9+/]{86}==)`),
+		SecretGroupName: "secret",
+		Keywords:        []string{"AccountKey"},
+	},
+	{
+		ID:              "azure-cosmos-db-account-key",
+		Category:        CategoryAzure,
+		Title:           "Azure Cosmos DB Account Key",
+		Severity:        "CRITICAL",
+		Regex:           MustCompile(`AccountEndpoint=https://[^;]+\.(documents|cosmos)\.azure\.com[^;]*;AccountKey=(?P<secret>[A-Za-z0-9+/]{86}==)`),
+		SecretGroupName: "secret",
+		Keywords:        []string{"AccountEndpoint", "AccountKey"},
+	},
+	{
+		ID:              "azure-sas-token",
+		Category:        CategoryAzure,
+		Title:           "Azure Shared Access Signature Token",
+		Severity:        "HIGH",
+		Regex:           MustCompile(`sv=[0-9]{4}-[0-9]{2}-[0-9]{2}[^"'\s]*[?&]sig=(?P<secret>[A-Za-z0-9%+/=]{40,})`),
+		SecretGroupName: "secret",
+		Keywords:        []string{"sig=", "sv="},
+	},
+	{
+		ID:              "azure-service-bus-connection-string",
+		Category:        CategoryAzure,
+		Title:           "Azure Service Bus / Event Hub Connection String",
+		Severity:        "HIGH",
+		Regex:           MustCompile(`Endpoint=sb://[^;]+;SharedAccessKeyName=[^;]+;SharedAccessKey=(?P<secret>[A-Za-z0-9+/=]{43,44})`),
+		SecretGroupName: "secret",
+		Keywords:        []string{"Endpoint=sb://", "SharedAccessKey"},
+	},
+	{
+		ID:              "azure-iot-hub-connection-string",
+		Category:        CategoryAzure,
+		Title:           "Azure IoT Hub Connection String",
+		Severity:        "HIGH",
+		Regex:           MustCompile(`HostName=[^.]+\.azure-devices\.net;[^"'\s]*SharedAccessKey=(?P<secret>[A-Za-z0-9+/=]{43,44})`),
+		SecretGroupName: "secret",
+		Keywords:        []string{"azure-devices.net", "SharedAccessKey"},
+	},
+	{
+		ID:              "azure-devops-pat",
+		Category:        CategoryAzure,
+		Title:           "Azure DevOps Personal Access Token",
+		Severity:        "HIGH",
+		Regex:           MustCompile(`(?i)(?:azure.?devops|ado).?(?:pat|token|personal.?access.?token)\s*[:=]\s*["']?(?P<secret>[a-z2-7]{52})["']?`),
+		SecretGroupName: "secret",
+		Keywords:        []string{"azure_devops", "azuredevops", "ado_pat", "ado_token"},
 	},
 }
