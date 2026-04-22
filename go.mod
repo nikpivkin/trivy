@@ -74,7 +74,7 @@ require (
 	github.com/masahiro331/go-ebs-file v0.0.0-20240917043618-e6d2bea5c32e
 	github.com/masahiro331/go-ext4-filesystem v0.0.0-20240620024024-ca14e6327bbd
 	github.com/masahiro331/go-mvn-version v0.0.0-20250131095131-f4974fa13b8a
-	github.com/masahiro331/go-vmdk-parser v0.0.0-20221225061455-612096e4bbbd
+	github.com/masahiro331/go-vmdk-parser v0.0.0-20260422020701-a12df6824e31
 	github.com/masahiro331/go-xfs-filesystem v0.0.0-20231205045356-1b22259a6c44
 	github.com/mattn/go-shellwords v1.0.12
 	github.com/mitchellh/go-homedir v1.1.0
