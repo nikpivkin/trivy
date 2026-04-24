@@ -77,7 +77,7 @@ require (
 	github.com/masahiro331/go-vmdk-parser v0.0.0-20260423020818-08305fa668d2
 	github.com/masahiro331/go-xfs-filesystem v0.0.0-20260422061116-d21e5e4481bb
 	github.com/mattn/go-shellwords v1.0.12
-	github.com/mitchellh/go-homedir v1.1.0
+	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/hashstructure/v2 v2.0.2
 	github.com/moby/buildkit v0.29.0
 	github.com/moby/docker-image-spec v1.3.1
