@@ -131,9 +131,9 @@ require (
 )
 
 require (
-	github.com/go-ini/ini v1.67.0
 	github.com/moby/moby/api v1.54.1
 	github.com/nikolalohinski/gonja/v2 v2.7.0
+	gopkg.in/ini.v1 v1.67.1
 )
 
 require (
