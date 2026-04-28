@@ -300,7 +300,7 @@ func TestRules_IgnoreWithCustomIgnorer(t *testing.T) {
 						if !ok {
 							return false
 						}
-						return ignore.MatchPattern("dev-stage1", ws)
+						return ignore.MatchPatternCaseSensitive("dev-stage1", ws)
 					},
 				},
 			},
@@ -373,6 +373,28 @@ func TestMatchPattern(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.input+":"+tc.pattern, func(t *testing.T) {
 			got := ignore.MatchPattern(tc.input, tc.pattern)
+			assert.Equal(t, tc.expected, got)
+		})
+	}
+}
+
+func TestMatchPatternCaseSensitive(t *testing.T) {
+	tests := []struct {
+		input    string
+		pattern  string
+		expected bool
+	}{
+		{"dev-stage1", "dev-*", true},
+		{"dev-stage1", "DEV-*", false},
+		{"production", "production", true},
+		{"Production", "production", false},
+		{"prod", "prod*", true},
+		{"Prod", "prod*", false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.input+":"+tc.pattern, func(t *testing.T) {
+			got := ignore.MatchPatternCaseSensitive(tc.input, tc.pattern)
 			assert.Equal(t, tc.expected, got)
 		})
 	}
