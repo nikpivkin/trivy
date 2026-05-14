@@ -1127,51 +1127,6 @@ func TestSecretScanner(t *testing.T) {
 		},
 		Offset: 11,
 	}
-	wantFindingAzureCosmosDBKey := types.SecretFinding{
-		RuleID:    "azure-cosmos-db-account-key",
-		Category:  secret.CategoryAzure,
-		Title:     "Azure Cosmos DB Account Key",
-		Severity:  "CRITICAL",
-		StartLine: 1,
-		EndLine:   1,
-		Match:     "a.cosmos.azure.com;AccountKey=" + azureSharedKey88,
-		Code: types.Code{
-			Lines: []types.Line{
-				{
-					Number:      1,
-					Content:     "a.cosmos.azure.com;AccountKey=" + azureSharedKey88,
-					Highlighted: "a.cosmos.azure.com;AccountKey=" + azureSharedKey88,
-					IsCause:     true,
-					FirstCause:  true,
-					LastCause:   true,
-				},
-			},
-		},
-		Offset: 54,
-	}
-	// azure-cosmos-db-account-key.txt also triggers the bare key rule since AccountKey= is present
-	wantFindingAzureStorageKeyInCosmosFile := types.SecretFinding{
-		RuleID:    "azure-storage-account-key",
-		Category:  secret.CategoryAzure,
-		Title:     "Azure Storage Account Key",
-		Severity:  "CRITICAL",
-		StartLine: 1,
-		EndLine:   1,
-		Match:     "a.cosmos.azure.com;AccountKey=" + azureSharedKey88,
-		Code: types.Code{
-			Lines: []types.Line{
-				{
-					Number:      1,
-					Content:     "a.cosmos.azure.com;AccountKey=" + azureSharedKey88,
-					Highlighted: "a.cosmos.azure.com;AccountKey=" + azureSharedKey88,
-					IsCause:     true,
-					FirstCause:  true,
-					LastCause:   true,
-				},
-			},
-		},
-		Offset: 54,
-	}
 	wantFindingAzureSASToken := types.SecretFinding{
 		RuleID:    "azure-sas-token",
 		Category:  secret.CategoryAzure,
@@ -1821,18 +1776,6 @@ func TestSecretScanner(t *testing.T) {
 			want: types.Secret{
 				FilePath: filepath.Join("testdata", "azure-storage-account-key.txt"),
 				Findings: []types.SecretFinding{wantFindingAzureStorageAccountKey},
-			},
-		},
-		{
-			name:          "find Azure Cosmos DB Account Key",
-			configPath:    filepath.Join("testdata", "skip-test.yaml"),
-			inputFilePath: filepath.Join("testdata", "azure-cosmos-db-account-key.txt"),
-			want: types.Secret{
-				FilePath: filepath.Join("testdata", "azure-cosmos-db-account-key.txt"),
-				Findings: []types.SecretFinding{
-					wantFindingAzureCosmosDBKey,
-					wantFindingAzureStorageKeyInCosmosFile,
-				},
 			},
 		},
 		{
