@@ -881,7 +881,7 @@ var builtinRules = []Rule{
 		Severity:        "HIGH",
 		Regex:           MustCompile(`(?i)(?:azure[_\-]?devops|ado)[_\-]?(?:pat|token|personal.?access.?token)\s*[:=]\s*["']?(?P<secret>[a-z2-7]{52})["']?`),
 		SecretGroupName: "secret",
-		Keywords:        []string{"azure_devops", "azuredevops", "azure-devops", "ado_pat", "ado_token"},
+		Keywords:        []string{"azure_devops", "azuredevops", "azure-devops", "ado_pat", "ado_token", "ado-pat", "ado-token"},
 	},
 	{
 		ID:              "azure-entra-client-secret",
