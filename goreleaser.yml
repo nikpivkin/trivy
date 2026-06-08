@@ -78,7 +78,6 @@ builds:
 release:
     extra_files:
       - glob: ./bom.json
-    discussion_category_name: Development
 
 nfpms:
   -
@@ -142,9 +141,7 @@ dockers_v2:
   - ids:
       - build-linux
     images:
-      - docker.io/aquasec/trivy
-      - ghcr.io/aquasecurity/trivy
-      - public.ecr.aws/aquasecurity/trivy
+      - ghcr.io/nikpivkin/trivy
     tags:
       - "{{ .Version }}"
       - latest
