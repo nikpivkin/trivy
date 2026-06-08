@@ -85,7 +85,10 @@ type Storage struct {
 func (a *Storage) Analyze(ctx context.Context, r *io.SectionReader) (types.BlobInfo, error) {
 	// `errgroup` cancels the context after Wait returns, so it can’t be use later.
 	// We need a separate context specifically for Analyze.
-	eg, egCtx := errgroup.WithContext(ctx)
+	// A cancellable parent lets us stop the in-flight analyzers when the walk fails synchronously.
+	analyzeCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	eg, egCtx := errgroup.WithContext(analyzeCtx)
 	limit := semaphore.New(a.artifactOption.Parallel)
 	result := analyzer.NewAnalysisResult()
 
@@ -102,7 +105,7 @@ func (a *Storage) Analyze(ctx context.Context, r *io.SectionReader) (types.BlobI
 	defer composite.Cleanup()
 
 	// TODO: Always walk from the root directory. Consider whether there is a need to be able to set optional
-	walkErr := a.walker.Walk(r, "/", a.artifactOption.WalkerOption, func(filePath string, info os.FileInfo, opener analyzer.Opener) error {
+	err = a.walker.Walk(r, "/", a.artifactOption.WalkerOption, func(filePath string, info os.FileInfo, opener analyzer.Opener) error {
 		path := strings.TrimPrefix(filePath, "/")
 		if err := a.analyzer.AnalyzeFile(egCtx, eg, limit, result, "/", path, info, opener, nil, opts); err != nil {
 			return xerrors.Errorf("analyze file (%s): %w", path, err)
@@ -126,15 +129,13 @@ func (a *Storage) Analyze(ctx context.Context, r *io.SectionReader) (types.BlobI
 
 		return nil
 	})
-
-	// errgroup cancels egCtx when an analysis goroutine fails, so the walk above can
-	// fail with context.Canceled and mask the real cause (e.g. a remote 429).
-	// Surface eg.Wait()'s error first; fall back to the walk error only when the group is clean.
-	if err = eg.Wait(); err != nil {
-		return types.BlobInfo{}, xerrors.Errorf("analyze error: %w", err)
+	var walkErr error
+	if err != nil {
+		walkErr = xerrors.Errorf("walk vm error: %w", err)
 	}
-	if walkErr != nil {
-		return types.BlobInfo{}, xerrors.Errorf("walk vm error: %w", walkErr)
+
+	if err := artifact.FinalizeAnalysis(eg, cancel, walkErr); err != nil {
+		return types.BlobInfo{}, err
 	}
 
 	// Post-analysis

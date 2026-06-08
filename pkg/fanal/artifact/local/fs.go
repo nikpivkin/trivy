@@ -195,7 +195,10 @@ func (a Artifact) Inspect(ctx context.Context) (artifact.Reference, error) {
 
 	// `errgroup` cancels the context after Wait returns, so it can’t be use later.
 	// We need a separate context specifically for Analyze.
-	eg, egCtx := errgroup.WithContext(ctx)
+	// A cancellable parent lets us stop the in-flight analyzers when the walk fails synchronously.
+	analyzeCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	eg, egCtx := errgroup.WithContext(analyzeCtx)
 	result := analyzer.NewAnalysisResult()
 	limit := semaphore.New(a.artifactOption.Parallel)
 	opts := analyzer.AnalysisOptions{
@@ -226,14 +229,8 @@ func (a Artifact) Inspect(ctx context.Context) (artifact.Reference, error) {
 		}
 	}
 
-	// errgroup cancels egCtx when an analysis goroutine fails, so the walk above can
-	// fail with context.Canceled and mask the real cause (e.g. a remote 429).
-	// Surface eg.Wait()'s error first; fall back to the walk error only when the group is clean.
-	if err = eg.Wait(); err != nil {
-		return artifact.Reference{}, xerrors.Errorf("analyze error: %w", err)
-	}
-	if walkErr != nil {
-		return artifact.Reference{}, walkErr
+	if err := artifact.FinalizeAnalysis(eg, cancel, walkErr); err != nil {
+		return artifact.Reference{}, err
 	}
 
 	// Post-analysis
