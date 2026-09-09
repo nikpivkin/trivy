@@ -292,6 +292,76 @@ deny := some_func(input)
 	require.NoError(t, err)
 }
 
+func TestLoadEmbeddedLibraries(t *testing.T) {
+	fsys := fstest.MapFS{
+		"check.rego": &fstest.MapFile{Data: []byte(`package user.test
+
+import data.lib.utils
+
+deny {
+	utils.has_key(input, "foo")
+}
+`)},
+	}
+
+	t.Run("enabled", func(t *testing.T) {
+		scanner := rego.NewScanner(
+			rego.WithPolicyDirs("."),
+			rego.WithPolicyFilesystem(fsys),
+			rego.WithEmbeddedPolicies(false),
+			rego.WithEmbeddedLibraries(true),
+			rego.WithMaxAllowedErrors(0),
+		)
+		require.NoError(t, scanner.LoadPolicies(nil))
+	})
+
+	t.Run("disabled", func(t *testing.T) {
+		scanner := rego.NewScanner(
+			rego.WithPolicyDirs("."),
+			rego.WithPolicyFilesystem(fsys),
+			rego.WithEmbeddedPolicies(false),
+			rego.WithEmbeddedLibraries(false),
+			rego.WithMaxAllowedErrors(0),
+		)
+		assert.Error(t, scanner.LoadPolicies(nil))
+	})
+}
+
+func TestLoadEmbeddedChecks(t *testing.T) {
+	originalFS := checks.EmbeddedPolicyFileSystem
+	checks.EmbeddedPolicyFileSystem = embeddedChecksFS
+	t.Cleanup(func() {
+		checks.EmbeddedPolicyFileSystem = originalFS
+	})
+
+	fsys := fstest.MapFS{
+		"schemas/fooschema.json": &fstest.MapFile{Data: []byte(`{
+			"$schema": "http://json-schema.org/draft-07/schema#",
+			"type": "object",
+			"properties": {
+				"foo": {
+					"type": "string"
+				}
+			}
+		}`)},
+	}
+
+	scanner := rego.NewScanner(
+		rego.WithPolicyDirs("."),
+		rego.WithPolicyFilesystem(fsys),
+		rego.WithEmbeddedPolicies(true),
+		rego.WithEmbeddedLibraries(false),
+	)
+	require.NoError(t, scanner.LoadPolicies(nil))
+
+	results, err := scanner.ScanInput(t.Context(), types.SourceDockerfile, rego.Input{
+		Path:     "Dockerfile",
+		Contents: map[string]any{"foo": "foo bar"},
+	})
+	require.NoError(t, err)
+	assert.NotEmpty(t, results.GetFailed())
+}
+
 func TestIsMinimumTrivyVersion(t *testing.T) {
 	testCases := []struct {
 		name                string

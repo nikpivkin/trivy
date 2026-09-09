@@ -60,21 +60,38 @@ func (s *Scanner) loadPoliciesFromReaders(readers []io.Reader) (map[string]*ast.
 }
 
 func (s *Scanner) loadEmbedded() error {
-	loaded, err := LoadEmbeddedLibraries()
-	if err != nil {
-		return fmt.Errorf("failed to load embedded rego libraries: %w", err)
+	if s.includeEmbeddedLibraries {
+		loaded, err := LoadEmbeddedLibraries()
+		if err != nil {
+			return fmt.Errorf("failed to load embedded rego libraries: %w", err)
+		}
+		s.embeddedLibs = loaded
+		s.logger.Debug("Embedded libraries are loaded", log.Int("count", len(loaded)))
 	}
-	s.embeddedLibs = loaded
-	s.logger.Debug("Embedded libraries are loaded", log.Int("count", len(loaded)))
 
-	loaded, err = LoadEmbeddedPolicies()
+	if s.includeEmbeddedPolicies {
+		if _, err := s.getEmbeddedChecks(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// getEmbeddedChecks parses the embedded checks on the first call and keeps them.
+func (s *Scanner) getEmbeddedChecks() (map[string]*ast.Module, error) {
+	if s.embeddedChecks != nil {
+		return s.embeddedChecks, nil
+	}
+
+	loaded, err := LoadEmbeddedPolicies()
 	if err != nil {
-		return fmt.Errorf("failed to load embedded rego checks: %w", err)
+		return nil, fmt.Errorf("failed to load embedded rego checks: %w", err)
 	}
 	s.embeddedChecks = loaded
 	s.logger.Debug("Embedded checks are loaded", log.Int("count", len(loaded)))
 
-	return nil
+	return loaded, nil
 }
 
 func (s *Scanner) LoadPolicies(srcFS fs.FS) error {
@@ -190,7 +207,13 @@ func (s *Scanner) fallbackChecks(compiler *ast.Compiler) {
 }
 
 func (s *Scanner) findMatchedEmbeddedCheck(badPolicy *ast.Module) *ast.Module {
-	for _, embeddedCheck := range s.embeddedChecks {
+	embeddedChecks, err := s.getEmbeddedChecks()
+	if err != nil {
+		s.logger.Error("Failed to load embedded checks", log.Err(err))
+		return nil
+	}
+
+	for _, embeddedCheck := range embeddedChecks {
 		if embeddedCheck.Package.Path.String() == badPolicy.Package.Path.String() {
 			return embeddedCheck
 		}
@@ -201,7 +224,7 @@ func (s *Scanner) findMatchedEmbeddedCheck(badPolicy *ast.Module) *ast.Module {
 		return nil
 	}
 
-	for _, embeddedCheck := range s.embeddedChecks {
+	for _, embeddedCheck := range embeddedChecks {
 		meta, err := MetadataFromAnnotations(embeddedCheck)
 		if err != nil || meta == nil {
 			continue
