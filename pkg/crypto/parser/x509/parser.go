@@ -74,10 +74,15 @@ type encryptedPrivateKeyInfo struct {
 	EncryptedData []byte
 }
 
+// maxPrivateKeyDER keeps crypto/x509 from validating an arbitrarily large modulus, where
+// the cost grows with the size, and it sits above RSA-16384, which takes 9.3 KB in PKCS#1.
+const maxPrivateKeyDER = 16 << 10 // 16KB
+
 var (
 	errNotCryptographic  = errors.New("not cryptographic")
 	errUnsupportedCrypto = errors.New("unsupported cryptographic object")
 	errMalformedCrypto   = errors.New("malformed cryptographic object")
+	errOversizedKey      = errors.New("oversized private key")
 )
 
 // Parse describes the cryptographic material a file carries as assets, each stating
@@ -127,7 +132,7 @@ func parse(ctx context.Context, content []byte) iter.Seq[object] {
 	return func(yield func(object) bool) {
 		var decodedPEM, recognized bool
 		// pem.Decode scans past malformed leading data and returns the next valid block.
-		for rest := content; ; {
+		for rest := content; ctx.Err() == nil; {
 			block, next := pem.Decode(rest)
 			if block == nil {
 				break
@@ -224,23 +229,11 @@ func parsePEMObject(label string, der []byte) (object, error) {
 	case "CERTIFICATE":
 		return certificateObject(der)
 	case "PRIVATE KEY":
-		privateKey, err := stdx509.ParsePKCS8PrivateKey(der)
-		if err != nil {
-			return object{}, errMalformedCrypto
-		}
-		return privateKeyToObject(privateKey, ftypes.CryptoKeyFormatPKCS8)
+		return privateKeyObject(der, ftypes.CryptoKeyFormatPKCS8, stdx509.ParsePKCS8PrivateKey)
 	case "RSA PRIVATE KEY":
-		privateKey, err := stdx509.ParsePKCS1PrivateKey(der)
-		if err != nil {
-			return object{}, errMalformedCrypto
-		}
-		return privateKeyToObject(privateKey, ftypes.CryptoKeyFormatPKCS1)
+		return privateKeyObject(der, ftypes.CryptoKeyFormatPKCS1, stdx509.ParsePKCS1PrivateKey)
 	case "EC PRIVATE KEY":
-		privateKey, err := stdx509.ParseECPrivateKey(der)
-		if err != nil {
-			return object{}, errMalformedCrypto
-		}
-		return privateKeyToObject(privateKey, ftypes.CryptoKeyFormatSEC1)
+		return privateKeyObject(der, ftypes.CryptoKeyFormatSEC1, stdx509.ParseECPrivateKey)
 	case "PUBLIC KEY":
 		publicKey, err := stdx509.ParsePKIXPublicKey(der)
 		if err != nil {
@@ -277,22 +270,38 @@ func parsePEMObject(label string, der []byte) (object, error) {
 	}
 }
 
+// privateKeyObject parses a private key and projects it to its public key.
+func privateKeyObject[K any](der []byte, format ftypes.CryptoKeyFormat, parse func([]byte) (K, error)) (object, error) {
+	if len(der) > maxPrivateKeyDER {
+		return object{}, errOversizedKey
+	}
+
+	privateKey, err := parse(der)
+	if err != nil {
+		return object{}, errMalformedCrypto
+	}
+	return privateKeyToObject(privateKey, format)
+}
+
 func parseDERObject(der []byte) (object, error) {
 	// The target ASN.1 DER structures have no common outer discriminator, so try their schema-specific parsers in order.
 	if obj, err := certificateObject(der); err == nil {
 		return obj, nil
 	}
 
-	if privateKey, err := stdx509.ParsePKCS1PrivateKey(der); err == nil {
-		return privateKeyToObject(privateKey, ftypes.CryptoKeyFormatPKCS1)
-	}
+	// A file above the bound is left to the parsers that do not validate what they read.
+	if len(der) <= maxPrivateKeyDER {
+		if privateKey, err := stdx509.ParsePKCS1PrivateKey(der); err == nil {
+			return privateKeyToObject(privateKey, ftypes.CryptoKeyFormatPKCS1)
+		}
 
-	if privateKey, err := stdx509.ParsePKCS8PrivateKey(der); err == nil {
-		return privateKeyToObject(privateKey, ftypes.CryptoKeyFormatPKCS8)
-	}
+		if privateKey, err := stdx509.ParsePKCS8PrivateKey(der); err == nil {
+			return privateKeyToObject(privateKey, ftypes.CryptoKeyFormatPKCS8)
+		}
 
-	if privateKey, err := stdx509.ParseECPrivateKey(der); err == nil {
-		return privateKeyToObject(privateKey, ftypes.CryptoKeyFormatSEC1)
+		if privateKey, err := stdx509.ParseECPrivateKey(der); err == nil {
+			return privateKeyToObject(privateKey, ftypes.CryptoKeyFormatSEC1)
+		}
 	}
 
 	if publicKey, err := stdx509.ParsePKIXPublicKey(der); err == nil {
@@ -409,6 +418,8 @@ func logParseError(ctx context.Context, pemType string, err error) {
 		log.DebugContext(ctx, "Unsupported cryptographic object", attrs...)
 	case errors.Is(err, errMalformedCrypto):
 		log.WarnContext(ctx, "Malformed cryptographic object", attrs...)
+	case errors.Is(err, errOversizedKey):
+		log.DebugContext(ctx, "Private key is too large to read", attrs...)
 	default:
 		log.DebugContext(ctx, "No cryptographic object found", attrs...)
 	}
