@@ -1,0 +1,142 @@
+version = 1
+revision = 3
+requires-python = ">=3.8"
+resolution-markers = [
+    "python_full_version >= '3.9'",
+    "python_full_version < '3.9'",
+]
+
+[[package]]
+name = "docopt"
+version = "0.6.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a2/55/8f8cab2afd404cf578136ef2cc5dfb50baa1761b68c9da1fb1e4eed343c9/docopt-0.6.2.tar.gz", hash = "sha256:49b3a825280bd66b3aa83585ef59c4a8c82f2c8a522dbe754a8bc8d08c85c491", size = 25901, upload-time = "2014-06-16T11:18:57.406Z" }
+
+[[package]]
+name = "flpkg"
+version = "0.1.0"
+source = { registry = "../findlinks" }
+sdist = { path = "flpkg-0.1.0.tar.gz" }
+wheels = [
+    { path = "flpkg-0.1.0-py2.py3-none-any.whl" },
+]
+
+[[package]]
+name = "idna"
+version = "3.10"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f1/70/7703c29685631f5a7590aa73f1f1d3fa9a380e654b86af429e0934a32f7d/idna-3.10.tar.gz", hash = "sha256:12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9", size = 190490, upload-time = "2024-09-15T18:07:39.745Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/76/c6/c88e154df9c4e1a2a66ccf0005a88dfb2650c1dffb6f5ce603dfbd452ce3/idna-3.10-py3-none-any.whl", hash = "sha256:946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3", size = 70442, upload-time = "2024-09-15T18:07:37.964Z" },
+]
+
+[[package]]
+name = "iniconfig"
+version = "2.0.0"
+source = { url = "https://files.pythonhosted.org/packages/source/i/iniconfig/iniconfig-2.0.0.tar.gz" }
+sdist = { hash = "sha256:2d91e135bf72d31a410b17c16da610a82cb55f6b0477d1a902134b24a455b8b3" }
+
+[[package]]
+name = "localpkg"
+version = "0.1.0"
+source = { path = "../dist/localpkg-0.1.0.tar.gz" }
+sdist = { hash = "sha256:80c4f6842e96165dacd7bc974fa9bd8d03b26ac5eb5d2b897fd39bd356511e47" }
+
+[[package]]
+name = "localwhl"
+version = "0.1.0"
+source = { path = "../dist/localwhl-0.1.0-py2.py3-none-any.whl" }
+wheels = [
+    { filename = "localwhl-0.1.0-py2.py3-none-any.whl", hash = "sha256:028fd549c18a9cd0f33dc14cdcba5d856659a01ee71e64e3b994d3a077f48eb8" },
+]
+
+[[package]]
+name = "pluggy"
+version = "1.5.0"
+source = { url = "https://files.pythonhosted.org/packages/py3/p/pluggy/pluggy-1.5.0-py3-none-any.whl" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/py3/p/pluggy/pluggy-1.5.0-py3-none-any.whl", hash = "sha256:44e1ad92c8ca002de6377e165f3e0f1be63266ab4d554740532335b9d75ea669" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "pre-commit", marker = "extra == 'dev'" },
+    { name = "pytest", marker = "extra == 'testing'" },
+    { name = "pytest-benchmark", marker = "extra == 'testing'" },
+    { name = "tox", marker = "extra == 'dev'" },
+]
+provides-extras = ["dev", "testing"]
+
+[[package]]
+name = "six"
+version = "1.16.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/71/39/171f1c67cd00715f190ba0b100d606d440a28c93c7714febeca8b79af85e/six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926", size = 34041, upload-time = "2021-05-05T14:18:18.379Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d9/5a/e7c31adbe875f2abbb91bd84cf2dc52d792b5a01506781dbcf25c91daf11/six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254", size = 11053, upload-time = "2021-05-05T14:18:17.237Z" },
+]
+
+[[package]]
+name = "tensorboard-plugin-wit"
+version = "1.8.1"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e0/68/e8ecfac5dd594b676c23a7f07ea34c197d7d69b3313afdf8ac1b0a9905a2/tensorboard_plugin_wit-1.8.1-py3-none-any.whl", hash = "sha256:ff26bdd583d155aa951ee3b152b3d0cffae8005dc697f72b44a8e8c2a77a8cbe", size = 781327, upload-time = "2022-01-05T20:29:51.358Z" },
+]
+
+[[package]]
+name = "typing-extensions"
+version = "4.7.1"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.9'",
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3c/8b/0111dd7d6c1478bf83baa1cab85c686426c7a6274119aceb2bd9d35395ad/typing_extensions-4.7.1.tar.gz", hash = "sha256:b75ddc264f0ba5615db7ba217daeb99701ad295353c45f9e95963337ceeeffb2", size = 72876, upload-time = "2023-07-02T14:20:55.045Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ec/6b/63cc3df74987c36fe26157ee12e09e8f9db4de771e0f3404263117e75b95/typing_extensions-4.7.1-py3-none-any.whl", hash = "sha256:440d5dd3af93b060174bf433bccd69b0babc3b15b1a8dca43789fd7f61514b36", size = 33232, upload-time = "2023-07-02T14:20:53.275Z" },
+]
+
+[[package]]
+name = "typing-extensions"
+version = "4.12.2"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.9'",
+]
+sdist = { url = "https://files.pythonhosted.org/packages/df/db/f35a00659bc03fec321ba8bce9420de607a1d37f8342eee1863174c69557/typing_extensions-4.12.2.tar.gz", hash = "sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8", size = 85321, upload-time = "2024-06-07T18:52:15.995Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/26/9f/ad63fc0248c5379346306f8668cda6e2e2e9c95e01216d2b8ffd9ff037d0/typing_extensions-4.12.2-py3-none-any.whl", hash = "sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d", size = 37438, upload-time = "2024-06-07T18:52:13.582Z" },
+]
+
+[[package]]
+name = "uv-distributions"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "docopt" },
+    { name = "flpkg" },
+    { name = "idna" },
+    { name = "iniconfig" },
+    { name = "localpkg" },
+    { name = "localwhl" },
+    { name = "pluggy" },
+    { name = "six" },
+    { name = "tensorboard-plugin-wit" },
+    { name = "typing-extensions", version = "4.7.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
+    { name = "typing-extensions", version = "4.12.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "docopt", specifier = "==0.6.2" },
+    { name = "flpkg" },
+    { name = "idna", specifier = "==3.10", index = "https://pypi.org/simple" },
+    { name = "iniconfig", url = "https://files.pythonhosted.org/packages/source/i/iniconfig/iniconfig-2.0.0.tar.gz" },
+    { name = "localpkg", path = "../dist/localpkg-0.1.0.tar.gz" },
+    { name = "localwhl", path = "../dist/localwhl-0.1.0-py2.py3-none-any.whl" },
+    { name = "pluggy", url = "https://files.pythonhosted.org/packages/py3/p/pluggy/pluggy-1.5.0-py3-none-any.whl" },
+    { name = "six", specifier = "==1.16.0" },
+    { name = "tensorboard-plugin-wit", specifier = "==1.8.1" },
+    { name = "typing-extensions", marker = "python_full_version < '3.9'", specifier = "==4.7.1" },
+    { name = "typing-extensions", marker = "python_full_version >= '3.9'", specifier = "==4.12.2" },
+]

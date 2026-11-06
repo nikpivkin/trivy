@@ -193,6 +193,30 @@ type PackageRepository struct {
 	// Name string `json:",omitempty"`
 }
 
+type DistributionKind string
+
+const (
+	// DistributionKindSource is the source form of a version, such as a Python sdist.
+	DistributionKindSource DistributionKind = "source"
+	// DistributionKindBuilt is the built form of a version, such as a Python wheel.
+	DistributionKindBuilt DistributionKind = "built"
+)
+
+// Distribution is a file that a package version is published as.
+// It does not mean that this file was installed.
+type Distribution struct {
+	// Kind tells whether the file is the source or the built form of the version, when the
+	// ecosystem publishes both. It is empty when the ecosystem does not make this distinction
+	// or the kind is not known.
+	Kind DistributionKind `json:",omitempty"`
+	// FileName is empty when the lock file records a hash without the file it belongs to.
+	FileName string `json:",omitempty"`
+	// URL is where the file can be downloaded, or the project page of the index when the lock
+	// file records only the index. A local file keeps the path recorded in the lock file.
+	URL     string                 `json:",omitempty"`
+	Digests []digest.SourcedDigest `json:",omitempty"`
+}
+
 type Package struct {
 	ID                 string        `json:",omitempty"`
 	Name               string        `json:",omitempty"`
@@ -239,6 +263,12 @@ type Package struct {
 	// per algorithm and source. Values with the same algorithm but different sources are kept
 	// apart, as they may cover different bytes.
 	Digests []digest.SourcedDigest `json:",omitempty"`
+
+	// Distributions are the files the package version is published as, such as an sdist and
+	// wheels for each platform, as recorded in a lock file. They do not tell which file was
+	// installed. New files of the same version are published over time, so they are left out
+	// of the package identity.
+	Distributions []Distribution `json:",omitempty" hash:"ignore"`
 
 	// lines from the lock file where the dependency is written
 	Locations Locations `json:",omitempty"`

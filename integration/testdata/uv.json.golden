@@ -40,6 +40,30 @@
           "DependsOn": [
             "colorama@0.4.6"
           ],
+          "Distributions": [
+            {
+              "Kind": "source",
+              "FileName": "click-8.1.3.tar.gz",
+              "URL": "https://files.pythonhosted.org/packages/59/87/84326af34517fca8c58418d148f2403df25303e02736832403587318e9e8/click-8.1.3.tar.gz",
+              "Digests": [
+                {
+                  "Digest": "sha256:7682dc8afb30297001674575ea00d1814d808d6a36af415a82bd481d37ba7b8e",
+                  "Source": "lockfile"
+                }
+              ]
+            },
+            {
+              "Kind": "built",
+              "FileName": "click-8.1.3-py3-none-any.whl",
+              "URL": "https://files.pythonhosted.org/packages/c2/f1/df59e28c642d583f7dacffb1e0965d0e00b218e0186d7858ac5233dce840/click-8.1.3-py3-none-any.whl",
+              "Digests": [
+                {
+                  "Digest": "sha256:bb4d8133cb15a609f44e8213d9b391b0809795062913b383c62be0ee95b1db48",
+                  "Source": "lockfile"
+                }
+              ]
+            }
+          ],
           "AnalyzedBy": "uv"
         },
         {
@@ -51,6 +75,30 @@
           },
           "Version": "0.11.1",
           "Relationship": "direct",
+          "Distributions": [
+            {
+              "Kind": "source",
+              "FileName": "Werkzeug-0.11.1.tar.gz",
+              "URL": "https://files.pythonhosted.org/packages/1c/b4/824c916f1451164bd871ad062defa2f48a34e2e952b12c0422f3ecf3a531/Werkzeug-0.11.1.tar.gz",
+              "Digests": [
+                {
+                  "Digest": "sha256:280b37866a1fa8604549cbc278f06d310143e20f1a6520ae5cf66e0df615e0a7",
+                  "Source": "lockfile"
+                }
+              ]
+            },
+            {
+              "Kind": "built",
+              "FileName": "Werkzeug-0.11.1-py2.py3-none-any.whl",
+              "URL": "https://files.pythonhosted.org/packages/0b/37/398042f9b852c57f7e9b4e1173dcd40e7b9980d9c76a700647c458f582b1/Werkzeug-0.11.1-py2.py3-none-any.whl",
+              "Digests": [
+                {
+                  "Digest": "sha256:bca5d6a06e4603abd0d2c10bb5ce523039bf16a0a7b8320bd74f6458d20d4c3b",
+                  "Source": "lockfile"
+                }
+              ]
+            }
+          ],
           "AnalyzedBy": "uv"
         },
         {
@@ -63,6 +111,30 @@
           "Version": "0.4.6",
           "Indirect": true,
           "Relationship": "indirect",
+          "Distributions": [
+            {
+              "Kind": "source",
+              "FileName": "colorama-0.4.6.tar.gz",
+              "URL": "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93a6792e2acffb9d9d5cb0a5cfd8802644b7b1c9a02e4/colorama-0.4.6.tar.gz",
+              "Digests": [
+                {
+                  "Digest": "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44",
+                  "Source": "lockfile"
+                }
+              ]
+            },
+            {
+              "Kind": "built",
+              "FileName": "colorama-0.4.6-py2.py3-none-any.whl",
+              "URL": "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl",
+              "Digests": [
+                {
+                  "Digest": "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6",
+                  "Source": "lockfile"
+                }
+              ]
+            }
+          ],
           "AnalyzedBy": "uv"
         }
       ],

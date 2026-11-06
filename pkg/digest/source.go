@@ -49,6 +49,10 @@ const (
 	// PKG-INFO extracted from the archive.
 	// Trivy computes it only for the cyclonedx, spdx and spdx-json formats.
 	SourceFileContent Source = "file-content"
+
+	// SourceLockfile is a hash of a whole distribution file, such as a Python wheel or sdist,
+	// recorded in a lock file. Trivy does not verify it.
+	SourceLockfile Source = "lockfile"
 )
 
 // SourcedDigest is a digest value together with the source it was acquired from.

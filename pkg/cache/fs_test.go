@@ -331,6 +331,121 @@ func TestFSCache_PutBlob(t *testing.T) {
 			`,
 			wantLayerID: "sha256:24df0d4e20c0f42d3703bf1f1db2bdd77346c7956f74f423603d651e8e5ae8a7",
 		},
+		{
+			name: "package with distributions",
+			args: args{
+				diffID: "sha256:24df0d4e20c0f42d3703bf1f1db2bdd77346c7956f74f423603d651e8e5ae8a7",
+				layerInfo: types.BlobInfo{
+					SchemaVersion: 1,
+					DiffID:        "sha256:24df0d4e20c0f42d3703bf1f1db2bdd77346c7956f74f423603d651e8e5ae8a7",
+					Applications: []types.Application{
+						{
+							Type:     types.Uv,
+							FilePath: "uv.lock",
+							Packages: types.Packages{
+								{
+									Name:    "foo",
+									Version: "1.0",
+									Distributions: []types.Distribution{
+										{
+											Kind:     types.DistributionKindSource,
+											FileName: "foo-1.0.tar.gz",
+											URL:      "https://files.example.com/foo-1.0.tar.gz",
+											Digests: []digest.SourcedDigest{
+												{
+													Digest: "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+													Source: digest.SourceLockfile,
+												},
+											},
+										},
+										{
+											URL: "https://pypi.example.com/simple/foo/",
+											Digests: []digest.SourcedDigest{
+												{
+													Digest: "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+													Source: digest.SourceLockfile,
+												},
+											},
+										},
+										{
+											Kind:     types.DistributionKindBuilt,
+											FileName: "foo-1.0-py3-none-any.whl",
+											URL:      "https://files.example.com/foo-1.0-py3-none-any.whl",
+											Digests: []digest.SourcedDigest{
+												{
+													Digest: "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+													Source: digest.SourceLockfile,
+												},
+												{
+													Digest: "sha512:44444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444",
+													Source: digest.SourceLockfile,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: `
+				{
+				  "SchemaVersion": 1,
+				  "DiffID": "sha256:24df0d4e20c0f42d3703bf1f1db2bdd77346c7956f74f423603d651e8e5ae8a7",
+				  "Applications": [
+				    {
+				      "Type": "uv",
+				      "FilePath": "uv.lock",
+				      "Packages": [
+				        {
+				          "Name": "foo",
+				          "Version": "1.0",
+				          "Distributions": [
+				            {
+				              "Kind": "source",
+				              "FileName": "foo-1.0.tar.gz",
+				              "URL": "https://files.example.com/foo-1.0.tar.gz",
+				              "Digests": [
+				                {
+				                  "Digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+				                  "Source": "lockfile"
+				                }
+				              ]
+				            },
+				            {
+				              "URL": "https://pypi.example.com/simple/foo/",
+				              "Digests": [
+				                {
+				                  "Digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+				                  "Source": "lockfile"
+				                }
+				              ]
+				            },
+				            {
+				              "Kind": "built",
+				              "FileName": "foo-1.0-py3-none-any.whl",
+				              "URL": "https://files.example.com/foo-1.0-py3-none-any.whl",
+				              "Digests": [
+				                {
+				                  "Digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+				                  "Source": "lockfile"
+				                },
+				                {
+				                  "Digest": "sha512:44444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444",
+				                  "Source": "lockfile"
+				                }
+				              ]
+				            }
+				          ]
+				        }
+				      ]
+				    }
+				  ]
+				}
+			`,
+			wantLayerID: "sha256:24df0d4e20c0f42d3703bf1f1db2bdd77346c7956f74f423603d651e8e5ae8a7",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

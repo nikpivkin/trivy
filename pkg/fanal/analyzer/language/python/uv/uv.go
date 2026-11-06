@@ -21,7 +21,7 @@ func init() {
 	analyzer.RegisterPostAnalyzer(analyzer.TypeUv, NewUvAnalyzer)
 }
 
-const version = 1
+const version = 2
 
 type uvAnalyzer struct {
 	logger     *log.Logger

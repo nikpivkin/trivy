@@ -2,6 +2,7 @@ package uv
 
 import (
 	"context"
+	"path"
 	"slices"
 	"sort"
 
@@ -10,6 +11,8 @@ import (
 	"golang.org/x/xerrors"
 
 	"github.com/aquasecurity/trivy/pkg/dependency"
+	"github.com/aquasecurity/trivy/pkg/dependency/parser/python"
+	"github.com/aquasecurity/trivy/pkg/digest"
 	ftypes "github.com/aquasecurity/trivy/pkg/fanal/types"
 	"github.com/aquasecurity/trivy/pkg/set"
 	xio "github.com/aquasecurity/trivy/pkg/x/io"
@@ -90,6 +93,61 @@ type Package struct {
 	Dependencies         Dependencies            `toml:"dependencies"`
 	DevDependencies      map[string]Dependencies `toml:"dev-dependencies"`
 	OptionalDependencies map[string]Dependencies `toml:"optional-dependencies"`
+	Sdist                *File                   `toml:"sdist"`
+	Wheels               []File                  `toml:"wheels"`
+}
+
+// File is an sdist or a wheel of a package.
+// A file from an index has url. A dependency on a local archive or on a direct URL has hash
+// and its location is in the package source. A file from a local find-links directory has
+// path without hash.
+type File struct {
+	URL  string `toml:"url"`
+	Hash string `toml:"hash"`
+}
+
+func (p Package) distributions() []ftypes.Distribution {
+	var dists []ftypes.Distribution
+	if p.Sdist != nil {
+		if d, ok := p.distribution(*p.Sdist, ftypes.DistributionKindSource); ok {
+			dists = append(dists, d)
+		}
+	}
+	for _, w := range p.Wheels {
+		if d, ok := p.distribution(w, ftypes.DistributionKindBuilt); ok {
+			dists = append(dists, d)
+		}
+	}
+	return dists
+}
+
+func (p Package) distribution(f File, kind ftypes.DistributionKind) (ftypes.Distribution, bool) {
+	if f.Hash == "" {
+		return ftypes.Distribution{}, false
+	}
+	d := ftypes.Distribution{
+		Kind: kind,
+		Digests: []digest.SourcedDigest{
+			{
+				Digest: digest.Digest(f.Hash),
+				Source: digest.SourceLockfile,
+			},
+		},
+	}
+	switch {
+	case f.URL != "":
+		d.URL = python.RemoveCredentials(f.URL)
+		d.FileName = python.FileNameFromURL(f.URL)
+	case p.Source.URL != "":
+		d.URL = python.RemoveCredentials(p.Source.URL)
+		d.FileName = python.FileNameFromURL(p.Source.URL)
+	case p.Source.Path != "":
+		// The path is relative to the lock file. It is kept as recorded, because an absolute
+		// path would be a path on the scanning machine.
+		d.URL = p.Source.Path
+		d.FileName = path.Base(p.Source.Path)
+	}
+	return d, true
 }
 
 func (p Package) directDeps() set.Set[string] {
@@ -128,6 +186,10 @@ func (p Package) isRoot() bool {
 type Source struct {
 	Editable string `toml:"editable"`
 	Virtual  string `toml:"virtual"`
+	// URL is set for a dependency on a direct URL.
+	URL string `toml:"url"`
+	// Path is set for a dependency on a local archive or directory.
+	Path string `toml:"path"`
 }
 
 type Dependency struct {
@@ -174,13 +236,17 @@ func (p *Parser) Parse(_ context.Context, r xio.ReadSeekerAt) ([]ftypes.Package,
 			relationship = ftypes.RelationshipDirect
 		}
 
-		pkgs = append(pkgs, ftypes.Package{
+		p := ftypes.Package{
 			ID:           pkgID,
 			Name:         pkg.Name,
 			Version:      pkg.Version,
 			Relationship: relationship,
 			Dev:          !prodDeps.Contains(pkg.Name),
-		})
+		}
+		// The files are read from each entry, not from the map by name, because uv can lock
+		// several versions of one name.
+		python.SetDistributions(&p, pkg.distributions())
+		pkgs = append(pkgs, p)
 
 		depNames := pkg.directDeps()
 		// The root package depends on every workspace member
