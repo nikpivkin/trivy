@@ -204,12 +204,53 @@ func (b *BOM) parseComponent(c cdx.Component) (*core.Component, error) {
 				Digests: b.unmarshalHashes(c.Hashes),
 			},
 		},
+		Distributions: b.unmarshalDistributions(c.ExternalReferences),
 		PkgIdentifier: identifier,
 		Supplier:      b.unmarshalSupplier(c.Supplier),
 		Properties:    b.unmarshalProperties(c.Properties),
 	}
 
 	return component, nil
+}
+
+// unmarshalDistributions reads the distribution files written by Trivy. Only the references with
+// a core.PropertySourcedDigest property are read, so the references of other tools are skipped.
+// A hash gets the source recorded for its value, and the first record of a value wins.
+func (b *BOM) unmarshalDistributions(refs *[]cdx.ExternalReference) []ftypes.Distribution {
+	var dists []ftypes.Distribution
+	for _, ref := range lo.FromPtr(refs) {
+		var d ftypes.Distribution
+		sources := make(map[digest.Digest]digest.Source)
+		for _, p := range b.unmarshalProperties(ref.Properties) {
+			if p.External {
+				continue
+			}
+			switch p.Name {
+			case core.PropertyFileName:
+				d.FileName = p.Value
+			case core.PropertyDistributionKind:
+				d.Kind = ftypes.DistributionKind(p.Value)
+			case core.PropertySourcedDigest:
+				src, dig, _ := strings.Cut(p.Value, ":")
+				if _, ok := sources[digest.Digest(dig)]; src != "" && !ok {
+					sources[digest.Digest(dig)] = digest.Source(src)
+				}
+			}
+		}
+		if len(sources) == 0 {
+			continue
+		}
+
+		d.URL = ref.URL
+		for _, h := range b.unmarshalHashes(ref.Hashes) {
+			if src, ok := sources[h.Digest]; ok {
+				h.Source = src
+			}
+			d.Digests = append(d.Digests, h)
+		}
+		dists = append(dists, d)
+	}
+	return dists
 }
 
 func (b *BOM) unmarshalType(t cdx.ComponentType) (core.ComponentType, error) {

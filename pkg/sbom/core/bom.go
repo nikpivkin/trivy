@@ -53,6 +53,10 @@ const (
 	// checksums have room for the source, so the property refers to the hash by its value.
 	PropertySourcedDigest = "SourcedDigest"
 
+	// Properties of a distribution file of the component.
+	PropertyFileName         = "FileName"
+	PropertyDistributionKind = "DistributionKind"
+
 	// Red Hat packages only.
 	// A package can use multiple NVR + Arch content sets or fields.
 	PropertyContentSet = "ContentSet"
@@ -172,6 +176,12 @@ type Component struct {
 	// CycloneDX: component.hashes
 	// SPDX: files, package.checksums
 	Files []File
+
+	// Distributions are the files the component version is published as. New files of the same
+	// version are published over time, so they are left out of the SPDX-ID.
+	// CycloneDX: component.externalReferences
+	// SPDX: package.annotations
+	Distributions []ftypes.Distribution `hash:"ignore"`
 
 	// Properties is a list of key-value pairs that provide additional information about the component
 	// CycloneDX: component.properties

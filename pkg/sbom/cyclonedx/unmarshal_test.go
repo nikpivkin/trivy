@@ -892,6 +892,103 @@ func TestUnmarshaler_Unmarshal(t *testing.T) {
 			},
 		},
 		{
+			name:      "distributions",
+			inputFile: "testdata/happy/distributions.json",
+			// The vcs reference has no recorded digest source, so it is not read as a distribution.
+			want: types.SBOM{
+				Applications: []ftypes.Application{
+					{
+						Type: ftypes.PythonPkg,
+						Packages: ftypes.Packages{
+							{
+								ID:      "certifi@2026.10.23",
+								Name:    "certifi",
+								Version: "2026.10.23",
+								Identifier: ftypes.PkgIdentifier{
+									PURL: &packageurl.PackageURL{
+										Type:    packageurl.TypePyPi,
+										Name:    "certifi",
+										Version: "2026.10.23",
+									},
+									BOMRef: "pkg:pypi/certifi@2026.10.23",
+								},
+								Distributions: []ftypes.Distribution{
+									{
+										Kind:     ftypes.DistributionKindSource,
+										FileName: "certifi-2026.10.23.tar.gz",
+										URL:      "https://files.pythonhosted.org/packages/aa/bb/certifi-2026.10.23.tar.gz",
+										Digests: []digest.SourcedDigest{
+											{
+												Digest: "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+												Source: digest.SourceLockfile,
+											},
+										},
+									},
+									{
+										Kind:     ftypes.DistributionKindBuilt,
+										FileName: "certifi-2026.10.23-py3-none-any.whl",
+										URL:      "https://files.pythonhosted.org/packages/cc/dd/certifi-2026.10.23-py3-none-any.whl",
+										Digests: []digest.SourcedDigest{
+											{
+												Digest: "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+												Source: digest.SourceLockfile,
+											},
+											{
+												Digest: "sha512:33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333",
+												Source: digest.SourceLockfile,
+											},
+										},
+									},
+									{
+										URL: "https://pypi.org/simple/certifi/",
+										Digests: []digest.SourcedDigest{
+											{
+												Digest: "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+												Source: digest.SourceLockfile,
+											},
+										},
+									},
+								},
+							},
+							{
+								ID:      "localpkg@0.1.0",
+								Name:    "localpkg",
+								Version: "0.1.0",
+								Identifier: ftypes.PkgIdentifier{
+									PURL: &packageurl.PackageURL{
+										Type:    packageurl.TypePyPi,
+										Name:    "localpkg",
+										Version: "0.1.0",
+									},
+									BOMRef: "pkg:pypi/localpkg@0.1.0",
+								},
+								Digest: "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+								Digests: []digest.SourcedDigest{
+									{
+										Digest: "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+										Source: digest.SourceLockfile,
+									},
+								},
+								Distributions: []ftypes.Distribution{
+									{
+										Kind:     ftypes.DistributionKindSource,
+										FileName: "localpkg-0.1.0.tar.gz",
+										URL:      "../dist/localpkg-0.1.0.tar.gz",
+										Digests: []digest.SourcedDigest{
+											{
+												Digest: "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+												Source: digest.SourceLockfile,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
 			name:      "happy path - third-party SBOM scan of `file` root component",
 			inputFile: "testdata/happy/third-party-scan-file-component.json",
 			want: types.SBOM{

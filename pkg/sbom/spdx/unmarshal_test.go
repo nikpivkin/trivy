@@ -377,6 +377,95 @@ func TestUnmarshaler_Unmarshal(t *testing.T) {
 			wantErr:   "purl is missing type or name",
 		},
 		{
+			name:      "distributions",
+			inputFile: "testdata/happy/distributions.json",
+			// Distributions without a file name share the URL and stay separate. A malformed
+			// annotation is skipped.
+			want: types.SBOM{
+				Applications: []ftypes.Application{
+					{
+						Type: ftypes.PythonPkg,
+						Packages: ftypes.Packages{
+							{
+								ID:       "certifi@2026.10.23",
+								Name:     "certifi",
+								Version:  "2026.10.23",
+								Licenses: []string{"NOASSERTION"},
+								Identifier: ftypes.PkgIdentifier{
+									PURL: &packageurl.PackageURL{
+										Type:    packageurl.TypePyPi,
+										Name:    "certifi",
+										Version: "2026.10.23",
+									},
+								},
+								Distributions: []ftypes.Distribution{
+									{
+										Kind:     ftypes.DistributionKindSource,
+										FileName: "certifi-2026.10.23.tar.gz",
+										URL:      "https://files.pythonhosted.org/packages/aa/bb/certifi-2026.10.23.tar.gz",
+										Digests: []digest.SourcedDigest{
+											{
+												Digest: "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+												Source: digest.SourceLockfile,
+											},
+										},
+									},
+									{
+										Kind:     ftypes.DistributionKindBuilt,
+										FileName: "certifi-2026.10.23-py3-none-any.whl",
+										URL:      "https://files.pythonhosted.org/packages/cc/dd/certifi-2026.10.23-py3-none-any.whl",
+										Digests: []digest.SourcedDigest{
+											{
+												Digest: "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+												Source: digest.SourceLockfile,
+											},
+											{
+												Digest: "sha512:33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333",
+												Source: digest.SourceLockfile,
+											},
+										},
+									},
+								},
+							},
+							{
+								ID:       "django@2.2",
+								Name:     "django",
+								Version:  "2.2",
+								Licenses: []string{"NOASSERTION"},
+								Identifier: ftypes.PkgIdentifier{
+									PURL: &packageurl.PackageURL{
+										Type:    packageurl.TypePyPi,
+										Name:    "django",
+										Version: "2.2",
+									},
+								},
+								Distributions: []ftypes.Distribution{
+									{
+										URL: "https://pypi.org/simple/django/",
+										Digests: []digest.SourcedDigest{
+											{
+												Digest: "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+												Source: digest.SourceLockfile,
+											},
+										},
+									},
+									{
+										URL: "https://pypi.org/simple/django/",
+										Digests: []digest.SourcedDigest{
+											{
+												Digest: "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+												Source: digest.SourceLockfile,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
 			name:      "happy path package with hash",
 			inputFile: "testdata/happy/package-hashes.json",
 			want: types.SBOM{

@@ -1,0 +1,94 @@
+{
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "creationInfo": {
+    "created": "2021-08-25T12:20:30Z",
+    "creators": [
+      "Tool: trivy-dev",
+      "Organization: aquasecurity"
+    ]
+  },
+  "dataLicense": "CC0-1.0",
+  "documentNamespace": "http://trivy.dev/filesystem/uv-project-3ff14136-e09f-4df9-80ea-000000000006",
+  "name": "uv-project",
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-Package-certifi-2026.10.23",
+      "name": "certifi",
+      "versionInfo": "2026.10.23",
+      "downloadLocation": "NONE",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/certifi@2026.10.23",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "annotations": [
+        {
+          "annotator": "Tool: trivy-dev",
+          "annotationDate": "2021-08-25T12:20:30Z",
+          "annotationType": "OTHER",
+          "comment": "PkgType: uv"
+        },
+        {
+          "annotator": "Tool: trivy-dev",
+          "annotationDate": "2021-08-25T12:20:30Z",
+          "annotationType": "OTHER",
+          "comment": "Distribution: lockfile:source:sha256=1111111111111111111111111111111111111111111111111111111111111111:certifi-2026.10.23.tar.gz:https://files.pythonhosted.org/packages/aa/bb/certifi-2026.10.23.tar.gz"
+        },
+        {
+          "annotator": "Tool: trivy-dev",
+          "annotationDate": "2021-08-25T12:20:30Z",
+          "annotationType": "OTHER",
+          "comment": "Distribution: lockfile:built:sha256=2222222222222222222222222222222222222222222222222222222222222222,sha512=33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333:certifi-2026.10.23-py3-none-any.whl:https://files.pythonhosted.org/packages/cc/dd/certifi-2026.10.23-py3-none-any.whl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-django-2.2",
+      "name": "django",
+      "versionInfo": "2.2",
+      "downloadLocation": "NONE",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:pypi/django@2.2",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "annotations": [
+        {
+          "annotator": "Tool: trivy-dev",
+          "annotationDate": "2021-08-25T12:20:30Z",
+          "annotationType": "OTHER",
+          "comment": "PkgType: pipenv"
+        },
+        {
+          "annotator": "Tool: trivy-dev",
+          "annotationDate": "2021-08-25T12:20:30Z",
+          "annotationType": "OTHER",
+          "comment": "Distribution: lockfile::sha256=4444444444444444444444444444444444444444444444444444444444444444::https://pypi.org/simple/django/"
+        },
+        {
+          "annotator": "Tool: trivy-dev",
+          "annotationDate": "2021-08-25T12:20:30Z",
+          "annotationType": "OTHER",
+          "comment": "Distribution: lockfile::sha256=5555555555555555555555555555555555555555555555555555555555555555::https://pypi.org/simple/django/"
+        },
+        {
+          "annotator": "Tool: trivy-dev",
+          "annotationDate": "2021-08-25T12:20:30Z",
+          "annotationType": "OTHER",
+          "comment": "Distribution: lockfile:source:sha256"
+        }
+      ]
+    }
+  ],
+  "spdxVersion": "SPDX-2.3"
+}

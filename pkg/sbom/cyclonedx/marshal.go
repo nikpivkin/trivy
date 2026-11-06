@@ -19,6 +19,7 @@ import (
 	"github.com/aquasecurity/trivy-db/pkg/vulnsrc/vulnerability"
 	"github.com/aquasecurity/trivy/pkg/clock"
 	"github.com/aquasecurity/trivy/pkg/digest"
+	ftypes "github.com/aquasecurity/trivy/pkg/fanal/types"
 	"github.com/aquasecurity/trivy/pkg/licensing"
 	"github.com/aquasecurity/trivy/pkg/licensing/expression"
 	"github.com/aquasecurity/trivy/pkg/log"
@@ -123,16 +124,17 @@ func (m *Marshaler) MarshalComponent(component *core.Component) (*cdx.Component,
 	}
 
 	cdxComponent := &cdx.Component{
-		BOMRef:     component.PkgIdentifier.BOMRef,
-		Type:       componentType,
-		Name:       component.Name,
-		Group:      component.Group,
-		Version:    component.Version,
-		PackageURL: m.PackageURL(component.PkgIdentifier.PURL),
-		Supplier:   m.Supplier(component.Supplier),
-		Hashes:     m.Hashes(component.Files),
-		Licenses:   m.Licenses(component.Licenses),
-		Properties: m.Properties(component.Properties),
+		BOMRef:             component.PkgIdentifier.BOMRef,
+		Type:               componentType,
+		Name:               component.Name,
+		Group:              component.Group,
+		Version:            component.Version,
+		PackageURL:         m.PackageURL(component.PkgIdentifier.PURL),
+		Supplier:           m.Supplier(component.Supplier),
+		Hashes:             m.Hashes(component.Files),
+		Licenses:           m.Licenses(component.Licenses),
+		ExternalReferences: m.Distributions(component.Distributions),
+		Properties:         m.Properties(component.Properties),
 	}
 	m.componentIDs[component.ID()] = cdxComponent.BOMRef
 
@@ -282,6 +284,66 @@ func (m *Marshaler) Hashes(files []core.File) *[]cdx.Hash {
 	digests := lo.FlatMap(files, func(file core.File, _ int) []digest.SourcedDigest {
 		return file.Digests
 	})
+	return m.hashes(digests)
+}
+
+// Distributions returns an external reference per distribution file. The file name, the kind and
+// the digest sources go to the properties of the reference, so that they can be read back.
+func (m *Marshaler) Distributions(dists []ftypes.Distribution) *[]cdx.ExternalReference {
+	if len(dists) == 0 {
+		return nil
+	}
+
+	var refs []cdx.ExternalReference
+	for _, d := range dists {
+		// CycloneDX requires a URL.
+		if d.URL == "" {
+			m.logger.Debug("Skipping a distribution without a URL", log.String("file", d.FileName))
+			continue
+		}
+		// CycloneDX has no type for a built file.
+		refType := cdx.ERTypeDistribution
+		if d.Kind == ftypes.DistributionKindSource {
+			refType = cdx.ERTypeSourceDistribution
+		}
+
+		props := []core.Property{
+			{
+				Name:  core.PropertyFileName,
+				Value: d.FileName,
+			},
+			{
+				Name:  core.PropertyDistributionKind,
+				Value: string(d.Kind),
+			},
+		}
+		for _, sd := range d.Digests {
+			if sd.Digest == "" || sd.Source == "" {
+				continue
+			}
+			props = append(props, core.Property{
+				Name:  core.PropertySourcedDigest,
+				Value: sd.Source.String() + ":" + sd.Digest.String(),
+			})
+		}
+		props = lo.Filter(props, func(p core.Property, _ int) bool {
+			return p.Value != ""
+		})
+
+		refs = append(refs, cdx.ExternalReference{
+			URL:        d.URL,
+			Type:       refType,
+			Hashes:     m.hashes(d.Digests),
+			Properties: m.Properties(props),
+		})
+	}
+	if len(refs) == 0 {
+		return nil
+	}
+	return &refs
+}
+
+func (m *Marshaler) hashes(digests []digest.SourcedDigest) *[]cdx.Hash {
 	if len(digests) == 0 {
 		return nil
 	}

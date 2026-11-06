@@ -1,0 +1,160 @@
+{
+    "$schema": "http://cyclonedx.org/schema/bom-1.7.schema.json",
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.7",
+    "serialNumber": "urn:uuid:3ff14136-e09f-4df9-80ea-000000000006",
+    "version": 1,
+    "metadata": {
+        "timestamp": "2021-08-25T12:20:30+00:00",
+        "tools": {
+            "components": [
+                {
+                    "type": "application",
+                    "manufacturer": {
+                        "name": "Aqua Security Software Ltd."
+                    },
+                    "group": "aquasecurity",
+                    "name": "trivy",
+                    "version": "dev"
+                }
+            ]
+        },
+        "component": {
+            "bom-ref": "3ff14136-e09f-4df9-80ea-000000000001",
+            "type": "application",
+            "name": "uv-project"
+        }
+    },
+    "components": [
+        {
+            "bom-ref": "pkg:pypi/certifi@2026.10.23",
+            "type": "library",
+            "name": "certifi",
+            "version": "2026.10.23",
+            "purl": "pkg:pypi/certifi@2026.10.23",
+            "externalReferences": [
+                {
+                    "url": "https://files.pythonhosted.org/packages/aa/bb/certifi-2026.10.23.tar.gz",
+                    "type": "source-distribution",
+                    "hashes": [
+                        {
+                            "alg": "SHA-256",
+                            "content": "1111111111111111111111111111111111111111111111111111111111111111"
+                        }
+                    ],
+                    "properties": [
+                        {
+                            "name": "aquasecurity:trivy:DistributionKind",
+                            "value": "source"
+                        },
+                        {
+                            "name": "aquasecurity:trivy:FileName",
+                            "value": "certifi-2026.10.23.tar.gz"
+                        },
+                        {
+                            "name": "aquasecurity:trivy:SourcedDigest",
+                            "value": "lockfile:sha256:1111111111111111111111111111111111111111111111111111111111111111"
+                        }
+                    ]
+                },
+                {
+                    "url": "https://files.pythonhosted.org/packages/cc/dd/certifi-2026.10.23-py3-none-any.whl",
+                    "type": "distribution",
+                    "hashes": [
+                        {
+                            "alg": "SHA-256",
+                            "content": "2222222222222222222222222222222222222222222222222222222222222222"
+                        },
+                        {
+                            "alg": "SHA-512",
+                            "content": "33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333"
+                        }
+                    ],
+                    "properties": [
+                        {
+                            "name": "aquasecurity:trivy:DistributionKind",
+                            "value": "built"
+                        },
+                        {
+                            "name": "aquasecurity:trivy:FileName",
+                            "value": "certifi-2026.10.23-py3-none-any.whl"
+                        },
+                        {
+                            "name": "aquasecurity:trivy:SourcedDigest",
+                            "value": "lockfile:sha256:2222222222222222222222222222222222222222222222222222222222222222"
+                        },
+                        {
+                            "name": "aquasecurity:trivy:SourcedDigest",
+                            "value": "lockfile:sha512:33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333"
+                        }
+                    ]
+                },
+                {
+                    "url": "https://pypi.org/simple/certifi/",
+                    "type": "distribution",
+                    "hashes": [
+                        {
+                            "alg": "SHA-256",
+                            "content": "4444444444444444444444444444444444444444444444444444444444444444"
+                        }
+                    ],
+                    "properties": [
+                        {
+                            "name": "aquasecurity:trivy:SourcedDigest",
+                            "value": "lockfile:sha256:4444444444444444444444444444444444444444444444444444444444444444"
+                        }
+                    ]
+                },
+                {
+                    "url": "https://github.com/certifi/python-certifi",
+                    "type": "vcs"
+                }
+            ]
+        },
+        {
+            "bom-ref": "pkg:pypi/localpkg@0.1.0",
+            "type": "library",
+            "name": "localpkg",
+            "version": "0.1.0",
+            "purl": "pkg:pypi/localpkg@0.1.0",
+            "hashes": [
+                {
+                    "alg": "SHA-256",
+                    "content": "6666666666666666666666666666666666666666666666666666666666666666"
+                }
+            ],
+            "externalReferences": [
+                {
+                    "url": "../dist/localpkg-0.1.0.tar.gz",
+                    "type": "source-distribution",
+                    "hashes": [
+                        {
+                            "alg": "SHA-256",
+                            "content": "6666666666666666666666666666666666666666666666666666666666666666"
+                        }
+                    ],
+                    "properties": [
+                        {
+                            "name": "aquasecurity:trivy:DistributionKind",
+                            "value": "source"
+                        },
+                        {
+                            "name": "aquasecurity:trivy:FileName",
+                            "value": "localpkg-0.1.0.tar.gz"
+                        },
+                        {
+                            "name": "aquasecurity:trivy:SourcedDigest",
+                            "value": "lockfile:sha256:6666666666666666666666666666666666666666666666666666666666666666"
+                        }
+                    ]
+                }
+            ],
+            "properties": [
+                {
+                    "name": "aquasecurity:trivy:SourcedDigest",
+                    "value": "lockfile:sha256:6666666666666666666666666666666666666666666666666666666666666666"
+                }
+            ]
+        }
+    ]
+}

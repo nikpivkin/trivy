@@ -19,6 +19,7 @@ import (
 
 	"github.com/aquasecurity/trivy/pkg/clock"
 	"github.com/aquasecurity/trivy/pkg/digest"
+	ftypes "github.com/aquasecurity/trivy/pkg/fanal/types"
 	"github.com/aquasecurity/trivy/pkg/licensing"
 	"github.com/aquasecurity/trivy/pkg/licensing/expression"
 	"github.com/aquasecurity/trivy/pkg/log"
@@ -54,6 +55,11 @@ const (
 	PackageSupplierOrganization = "Organization"
 
 	PackageAnnotatorToolField = "Tool"
+
+	// AnnotationDistribution records a distribution file of the package as
+	// "<source>:<kind>:<alg>=<value>[,<alg>=<value>]:<file name>:<url>". The URL is the last
+	// field because it contains ":". Empty fields are allowed.
+	AnnotationDistribution = "Distribution"
 
 	RelationShipContains  = common.TypeRelationshipContains
 	RelationShipDescribe  = common.TypeRelationshipDescribe
@@ -382,6 +388,15 @@ func (m *Marshaler) spdxPackage(c *core.Component, timeNow, pkgDownloadLocation 
 		digests = append(digests, f.Digests...)
 	}
 
+	annotations := m.spdxAnnotations(c, timeNow)
+	for _, d := range c.Distributions {
+		value, err := formatDistribution(d)
+		if err != nil {
+			return spdx.Package{}, xerrors.Errorf("failed to format distribution of %s: %w", c.Name, err)
+		}
+		annotations = m.appendAnnotation(annotations, timeNow, AnnotationDistribution, value)
+	}
+
 	return spdx.Package{
 		PackageSPDXIdentifier:     elementID(elementType, pkgID),
 		PackageName:               spdxPkgName(c),
@@ -389,7 +404,7 @@ func (m *Marshaler) spdxPackage(c *core.Component, timeNow, pkgDownloadLocation 
 		PrimaryPackagePurpose:     purpose,
 		PackageDownloadLocation:   pkgDownloadLocation,
 		PackageExternalReferences: pkgExtRefs,
-		Annotations:               m.spdxAnnotations(c, timeNow),
+		Annotations:               annotations,
 		PackageSourceInfo:         sourceInfo,
 		PackageSupplier:           supplier,
 		PackageChecksums:          m.spdxChecksums(digests),
@@ -649,6 +664,28 @@ func rootDocumentNamespace(root *core.Component) string {
 		strings.ReplaceAll(strings.ReplaceAll(root.Name, "https://", ""), "http://", ""), // remove http(s):// prefix when scanning repos
 		uuid.New().String(),
 	)
+}
+
+// formatDistribution returns the value of an AnnotationDistribution annotation. The digests of
+// one file come from one lock file, so the source is written once.
+func formatDistribution(d ftypes.Distribution) (string, error) {
+	var src digest.Source
+	var digests []string
+	for i, sd := range d.Digests {
+		if i == 0 {
+			src = sd.Source
+		} else if sd.Source != src {
+			return "", xerrors.Errorf("digests of %q have different sources", d.FileName)
+		}
+		digests = append(digests, sd.Algorithm().String()+"="+sd.Value())
+	}
+	return strings.Join([]string{
+		src.String(),
+		string(d.Kind),
+		strings.Join(digests, ","),
+		d.FileName,
+		d.URL,
+	}, ":"), nil
 }
 
 // withoutSourcedDigests returns the component without its core.PropertySourcedDigest properties.

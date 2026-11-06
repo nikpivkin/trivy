@@ -1525,6 +1525,279 @@ func TestMarshaler_Marshal(t *testing.T) {
 			},
 		},
 		{
+			name: "happy path with distributions",
+			inputReport: types.Report{
+				SchemaVersion: report.SchemaVersion,
+				ArtifactName:  "uv-project",
+				ArtifactType:  ftypes.TypeFilesystem,
+				Results: types.Results{
+					{
+						Target: "uv.lock",
+						Class:  types.ClassLangPkg,
+						Type:   ftypes.Uv,
+						Packages: []ftypes.Package{
+							{
+								ID:      "certifi@2026.10.23",
+								Name:    "certifi",
+								Version: "2026.10.23",
+								Identifier: ftypes.PkgIdentifier{
+									UID: "C1E2A3B4C5D6E7F8",
+									PURL: &packageurl.PackageURL{
+										Type:    packageurl.TypePyPi,
+										Name:    "certifi",
+										Version: "2026.10.23",
+									},
+								},
+								Distributions: []ftypes.Distribution{
+									{
+										Kind:     ftypes.DistributionKindSource,
+										FileName: "certifi-2026.10.23.tar.gz",
+										URL:      "https://files.pythonhosted.org/packages/aa/bb/certifi-2026.10.23.tar.gz",
+										Digests: []digest.SourcedDigest{
+											{
+												Digest: "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+												Source: digest.SourceLockfile,
+											},
+										},
+									},
+									{
+										Kind:     ftypes.DistributionKindBuilt,
+										FileName: "certifi-2026.10.23-py3-none-any.whl",
+										URL:      "https://files.pythonhosted.org/packages/cc/dd/certifi-2026.10.23-py3-none-any.whl",
+										Digests: []digest.SourcedDigest{
+											{
+												Digest: "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+												Source: digest.SourceLockfile,
+											},
+											{
+												Digest: "sha512:33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333",
+												Source: digest.SourceLockfile,
+											},
+										},
+									},
+								},
+							},
+							{
+								ID:      "django@2.2",
+								Name:    "django",
+								Version: "2.2",
+								Identifier: ftypes.PkgIdentifier{
+									UID: "D1E2A3B4C5D6E7F8",
+									PURL: &packageurl.PackageURL{
+										Type:    packageurl.TypePyPi,
+										Name:    "django",
+										Version: "2.2",
+									},
+								},
+								Distributions: []ftypes.Distribution{
+									{
+										URL: "https://pypi.org/simple/django/",
+										Digests: []digest.SourcedDigest{
+											{
+												Digest: "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+												Source: digest.SourceLockfile,
+											},
+										},
+									},
+									{
+										URL: "https://pypi.org/simple/django/",
+										Digests: []digest.SourcedDigest{
+											{
+												Digest: "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+												Source: digest.SourceLockfile,
+											},
+										},
+									},
+								},
+							},
+							{
+								ID:      "localpkg@0.1.0",
+								Name:    "localpkg",
+								Version: "0.1.0",
+								Identifier: ftypes.PkgIdentifier{
+									UID: "E1E2A3B4C5D6E7F8",
+									PURL: &packageurl.PackageURL{
+										Type:    packageurl.TypePyPi,
+										Name:    "localpkg",
+										Version: "0.1.0",
+									},
+								},
+								Digests: []digest.SourcedDigest{
+									{
+										Digest: "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+										Source: digest.SourceLockfile,
+									},
+								},
+								Distributions: []ftypes.Distribution{
+									{
+										Kind:     ftypes.DistributionKindSource,
+										FileName: "localpkg-0.1.0.tar.gz",
+										URL:      "../dist/localpkg-0.1.0.tar.gz",
+										Digests: []digest.SourcedDigest{
+											{
+												Digest: "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+												Source: digest.SourceLockfile,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			wantSBOM: &spdx.Document{
+				SPDXVersion:       spdx.Version,
+				DataLicense:       spdx.DataLicense,
+				SPDXIdentifier:    "DOCUMENT",
+				DocumentName:      "uv-project",
+				DocumentNamespace: "http://trivy.dev/filesystem/uv-project-3ff14136-e09f-4df9-80ea-000000000006",
+				CreationInfo: &spdx.CreationInfo{
+					Creators: []common.Creator{
+						{
+							Creator:     "aquasecurity",
+							CreatorType: "Organization",
+						},
+						{
+							Creator:     "trivy-0.56.2",
+							CreatorType: "Tool",
+						},
+					},
+					Created: "2021-08-25T12:20:30Z",
+				},
+				Packages: []*spdx.Package{
+					{
+						PackageSPDXIdentifier:   spdx.ElementID("Application-5e905a786a7d07df"),
+						PackageDownloadLocation: "NONE",
+						PackageName:             "uv.lock",
+						PrimaryPackagePurpose:   tspdx.PackagePurposeApplication,
+						PackageLicenseConcluded: "NOASSERTION",
+						PackageLicenseDeclared:  "NOASSERTION",
+						Annotations: []spdx.Annotation{
+							annotation(t, "Class: lang-pkgs"),
+							annotation(t, "Type: uv"),
+						},
+					},
+					{
+						PackageSPDXIdentifier:   spdx.ElementID("Package-ef5035887e393a6f"),
+						PackageDownloadLocation: "NONE",
+						PackageName:             "certifi",
+						PackageVersion:          "2026.10.23",
+						PackageLicenseConcluded: "NOASSERTION",
+						PackageLicenseDeclared:  "NOASSERTION",
+						PackageExternalReferences: []*spdx.PackageExternalReference{
+							{
+								Category: tspdx.CategoryPackageManager,
+								RefType:  tspdx.RefTypePurl,
+								Locator:  "pkg:pypi/certifi@2026.10.23",
+							},
+						},
+						PrimaryPackagePurpose: tspdx.PackagePurposeLibrary,
+						PackageSupplier:       &spdx.Supplier{Supplier: tspdx.PackageSupplierNoAssertion},
+						PackageSourceInfo:     "package found in: uv.lock",
+						Annotations: []spdx.Annotation{
+							annotation(t, "PkgID: certifi@2026.10.23"),
+							annotation(t, "PkgType: uv"),
+							annotation(t, "Distribution: lockfile:source:sha256=1111111111111111111111111111111111111111111111111111111111111111:certifi-2026.10.23.tar.gz:https://files.pythonhosted.org/packages/aa/bb/certifi-2026.10.23.tar.gz"),
+							annotation(t, "Distribution: lockfile:built:sha256=2222222222222222222222222222222222222222222222222222222222222222,sha512=33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333:certifi-2026.10.23-py3-none-any.whl:https://files.pythonhosted.org/packages/cc/dd/certifi-2026.10.23-py3-none-any.whl"),
+						},
+					},
+					{
+						PackageSPDXIdentifier:   spdx.ElementID("Package-bafe67b71ac71fb2"),
+						PackageDownloadLocation: "NONE",
+						PackageName:             "django",
+						PackageVersion:          "2.2",
+						PackageLicenseConcluded: "NOASSERTION",
+						PackageLicenseDeclared:  "NOASSERTION",
+						PackageExternalReferences: []*spdx.PackageExternalReference{
+							{
+								Category: tspdx.CategoryPackageManager,
+								RefType:  tspdx.RefTypePurl,
+								Locator:  "pkg:pypi/django@2.2",
+							},
+						},
+						PrimaryPackagePurpose: tspdx.PackagePurposeLibrary,
+						PackageSupplier:       &spdx.Supplier{Supplier: tspdx.PackageSupplierNoAssertion},
+						PackageSourceInfo:     "package found in: uv.lock",
+						Annotations: []spdx.Annotation{
+							annotation(t, "PkgID: django@2.2"),
+							annotation(t, "PkgType: uv"),
+							annotation(t, "Distribution: lockfile::sha256=4444444444444444444444444444444444444444444444444444444444444444::https://pypi.org/simple/django/"),
+							annotation(t, "Distribution: lockfile::sha256=5555555555555555555555555555555555555555555555555555555555555555::https://pypi.org/simple/django/"),
+						},
+					},
+					{
+						PackageSPDXIdentifier:   spdx.ElementID("Package-cf2fb06e7a2722d3"),
+						PackageDownloadLocation: "NONE",
+						PackageName:             "localpkg",
+						PackageVersion:          "0.1.0",
+						PackageLicenseConcluded: "NOASSERTION",
+						PackageLicenseDeclared:  "NOASSERTION",
+						PackageExternalReferences: []*spdx.PackageExternalReference{
+							{
+								Category: tspdx.CategoryPackageManager,
+								RefType:  tspdx.RefTypePurl,
+								Locator:  "pkg:pypi/localpkg@0.1.0",
+							},
+						},
+						PrimaryPackagePurpose: tspdx.PackagePurposeLibrary,
+						PackageSupplier:       &spdx.Supplier{Supplier: tspdx.PackageSupplierNoAssertion},
+						PackageSourceInfo:     "package found in: uv.lock",
+						PackageChecksums: []spdx.Checksum{
+							{
+								Algorithm: common.SHA256,
+								Value:     "6666666666666666666666666666666666666666666666666666666666666666",
+							},
+						},
+						Annotations: []spdx.Annotation{
+							annotation(t, "PkgID: localpkg@0.1.0"),
+							annotation(t, "PkgType: uv"),
+							annotation(t, "SourcedDigest: lockfile:sha256:6666666666666666666666666666666666666666666666666666666666666666"),
+							annotation(t, "Distribution: lockfile:source:sha256=6666666666666666666666666666666666666666666666666666666666666666:localpkg-0.1.0.tar.gz:../dist/localpkg-0.1.0.tar.gz"),
+						},
+					},
+					{
+						PackageName:             "uv-project",
+						PackageSPDXIdentifier:   "Filesystem-f302dc77ebcb3c4c",
+						PackageDownloadLocation: "NONE",
+						Annotations: []spdx.Annotation{
+							annotation(t, "SchemaVersion: 2"),
+						},
+						PrimaryPackagePurpose:   tspdx.PackagePurposeSource,
+						PackageLicenseConcluded: "NOASSERTION",
+						PackageLicenseDeclared:  "NOASSERTION",
+					},
+				},
+				Relationships: []*spdx.Relationship{
+					{
+						RefA:         spdx.DocElementID{ElementRefID: "Application-5e905a786a7d07df"},
+						RefB:         spdx.DocElementID{ElementRefID: "Package-bafe67b71ac71fb2"},
+						Relationship: "CONTAINS",
+					},
+					{
+						RefA:         spdx.DocElementID{ElementRefID: "Application-5e905a786a7d07df"},
+						RefB:         spdx.DocElementID{ElementRefID: "Package-cf2fb06e7a2722d3"},
+						Relationship: "CONTAINS",
+					},
+					{
+						RefA:         spdx.DocElementID{ElementRefID: "Application-5e905a786a7d07df"},
+						RefB:         spdx.DocElementID{ElementRefID: "Package-ef5035887e393a6f"},
+						Relationship: "CONTAINS",
+					},
+					{
+						RefA:         spdx.DocElementID{ElementRefID: "DOCUMENT"},
+						RefB:         spdx.DocElementID{ElementRefID: "Filesystem-f302dc77ebcb3c4c"},
+						Relationship: "DESCRIBES",
+					},
+					{
+						RefA:         spdx.DocElementID{ElementRefID: "Filesystem-f302dc77ebcb3c4c"},
+						RefB:         spdx.DocElementID{ElementRefID: "Application-5e905a786a7d07df"},
+						Relationship: "CONTAINS",
+					},
+				},
+			},
+		},
+		{
 			// Regression for https://github.com/aquasecurity/trivy/issues/10764:
 			// Marshal must not panic when the BOM has no root component (e.g. an SPDX
 			// SBOM without a DESCRIBES relationship from SPDXRef-DOCUMENT). Components

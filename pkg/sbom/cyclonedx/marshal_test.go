@@ -2157,6 +2157,389 @@ func TestMarshaler_MarshalReport(t *testing.T) {
 			},
 		},
 		{
+			name: "happy path with distributions",
+			inputReport: types.Report{
+				SchemaVersion: report.SchemaVersion,
+				ArtifactName:  "uv-project",
+				ArtifactType:  ftypes.TypeFilesystem,
+				Results: types.Results{
+					{
+						Target: "uv.lock",
+						Class:  types.ClassLangPkg,
+						Type:   ftypes.Uv,
+						Packages: []ftypes.Package{
+							{
+								ID:      "certifi@2026.10.23",
+								Name:    "certifi",
+								Version: "2026.10.23",
+								Identifier: ftypes.PkgIdentifier{
+									UID: "C1E2A3B4C5D6E7F8",
+									PURL: &packageurl.PackageURL{
+										Type:    packageurl.TypePyPi,
+										Name:    "certifi",
+										Version: "2026.10.23",
+									},
+								},
+								Distributions: []ftypes.Distribution{
+									{
+										Kind:     ftypes.DistributionKindSource,
+										FileName: "certifi-2026.10.23.tar.gz",
+										URL:      "https://files.pythonhosted.org/packages/aa/bb/certifi-2026.10.23.tar.gz",
+										Digests: []digest.SourcedDigest{
+											{
+												Digest: "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+												Source: digest.SourceLockfile,
+											},
+										},
+									},
+									{
+										Kind:     ftypes.DistributionKindBuilt,
+										FileName: "certifi-2026.10.23-py3-none-any.whl",
+										URL:      "https://files.pythonhosted.org/packages/cc/dd/certifi-2026.10.23-py3-none-any.whl",
+										Digests: []digest.SourcedDigest{
+											{
+												Digest: "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+												Source: digest.SourceLockfile,
+											},
+											{
+												Digest: "sha512:33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333",
+												Source: digest.SourceLockfile,
+											},
+										},
+									},
+								},
+							},
+							{
+								ID:      "django@2.2",
+								Name:    "django",
+								Version: "2.2",
+								Identifier: ftypes.PkgIdentifier{
+									UID: "D1E2A3B4C5D6E7F8",
+									PURL: &packageurl.PackageURL{
+										Type:    packageurl.TypePyPi,
+										Name:    "django",
+										Version: "2.2",
+									},
+								},
+								Distributions: []ftypes.Distribution{
+									{
+										URL: "https://pypi.org/simple/django/",
+										Digests: []digest.SourcedDigest{
+											{
+												Digest: "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+												Source: digest.SourceLockfile,
+											},
+										},
+									},
+									{
+										URL: "https://pypi.org/simple/django/",
+										Digests: []digest.SourcedDigest{
+											{
+												Digest: "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+												Source: digest.SourceLockfile,
+											},
+										},
+									},
+								},
+							},
+							{
+								ID:      "localpkg@0.1.0",
+								Name:    "localpkg",
+								Version: "0.1.0",
+								Identifier: ftypes.PkgIdentifier{
+									UID: "E1E2A3B4C5D6E7F8",
+									PURL: &packageurl.PackageURL{
+										Type:    packageurl.TypePyPi,
+										Name:    "localpkg",
+										Version: "0.1.0",
+									},
+								},
+								Digests: []digest.SourcedDigest{
+									{
+										Digest: "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+										Source: digest.SourceLockfile,
+									},
+								},
+								Distributions: []ftypes.Distribution{
+									{
+										Kind:     ftypes.DistributionKindSource,
+										FileName: "localpkg-0.1.0.tar.gz",
+										URL:      "../dist/localpkg-0.1.0.tar.gz",
+										Digests: []digest.SourcedDigest{
+											{
+												Digest: "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+												Source: digest.SourceLockfile,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: &cdx.BOM{
+				XMLNS:        "http://cyclonedx.org/schema/bom/1.7",
+				BOMFormat:    "CycloneDX",
+				SpecVersion:  cdx.SpecVersion1_7,
+				JSONSchema:   "http://cyclonedx.org/schema/bom-1.7.schema.json",
+				SerialNumber: "urn:uuid:3ff14136-e09f-4df9-80ea-000000000006",
+				Version:      1,
+				Metadata: &cdx.Metadata{
+					Timestamp: "2021-08-25T12:20:30+00:00",
+					Tools: &cdx.ToolsChoice{
+						Components: &[]cdx.Component{
+							{
+								Type:    cdx.ComponentTypeApplication,
+								Name:    "trivy",
+								Group:   "aquasecurity",
+								Version: "dev",
+								Manufacturer: &cdx.OrganizationalEntity{
+									Name: "Aqua Security Software Ltd.",
+								},
+							},
+						},
+					},
+					Component: &cdx.Component{
+						BOMRef: "3ff14136-e09f-4df9-80ea-000000000001",
+						Type:   cdx.ComponentTypeApplication,
+						Name:   "uv-project",
+						Properties: &[]cdx.Property{
+							{
+								Name:  "aquasecurity:trivy:SchemaVersion",
+								Value: "2",
+							},
+						},
+					},
+				},
+				Components: &[]cdx.Component{
+					{
+						BOMRef: "3ff14136-e09f-4df9-80ea-000000000002",
+						Type:   cdx.ComponentTypeApplication,
+						Name:   "uv.lock",
+						Properties: &[]cdx.Property{
+							{
+								Name:  "aquasecurity:trivy:Class",
+								Value: "lang-pkgs",
+							},
+							{
+								Name:  "aquasecurity:trivy:Type",
+								Value: "uv",
+							},
+						},
+					},
+					{
+						BOMRef:     "pkg:pypi/certifi@2026.10.23",
+						Type:       cdx.ComponentTypeLibrary,
+						Name:       "certifi",
+						Version:    "2026.10.23",
+						PackageURL: "pkg:pypi/certifi@2026.10.23",
+						ExternalReferences: &[]cdx.ExternalReference{
+							{
+								URL:  "https://files.pythonhosted.org/packages/aa/bb/certifi-2026.10.23.tar.gz",
+								Type: cdx.ERTypeSourceDistribution,
+								Hashes: &[]cdx.Hash{
+									{
+										Algorithm: cdx.HashAlgoSHA256,
+										Value:     "1111111111111111111111111111111111111111111111111111111111111111",
+									},
+								},
+								Properties: &[]cdx.Property{
+									{
+										Name:  "aquasecurity:trivy:DistributionKind",
+										Value: "source",
+									},
+									{
+										Name:  "aquasecurity:trivy:FileName",
+										Value: "certifi-2026.10.23.tar.gz",
+									},
+									{
+										Name:  "aquasecurity:trivy:SourcedDigest",
+										Value: "lockfile:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+									},
+								},
+							},
+							{
+								URL:  "https://files.pythonhosted.org/packages/cc/dd/certifi-2026.10.23-py3-none-any.whl",
+								Type: cdx.ERTypeDistribution,
+								Hashes: &[]cdx.Hash{
+									{
+										Algorithm: cdx.HashAlgoSHA256,
+										Value:     "2222222222222222222222222222222222222222222222222222222222222222",
+									},
+									{
+										Algorithm: cdx.HashAlgoSHA512,
+										Value:     "33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333",
+									},
+								},
+								Properties: &[]cdx.Property{
+									{
+										Name:  "aquasecurity:trivy:DistributionKind",
+										Value: "built",
+									},
+									{
+										Name:  "aquasecurity:trivy:FileName",
+										Value: "certifi-2026.10.23-py3-none-any.whl",
+									},
+									{
+										Name:  "aquasecurity:trivy:SourcedDigest",
+										Value: "lockfile:sha256:2222222222222222222222222222222222222222222222222222222222222222",
+									},
+									{
+										Name:  "aquasecurity:trivy:SourcedDigest",
+										Value: "lockfile:sha512:33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333",
+									},
+								},
+							},
+						},
+						Properties: &[]cdx.Property{
+							{
+								Name:  "aquasecurity:trivy:PkgID",
+								Value: "certifi@2026.10.23",
+							},
+							{
+								Name:  "aquasecurity:trivy:PkgType",
+								Value: "uv",
+							},
+						},
+					},
+					{
+						BOMRef:     "pkg:pypi/django@2.2",
+						Type:       cdx.ComponentTypeLibrary,
+						Name:       "django",
+						Version:    "2.2",
+						PackageURL: "pkg:pypi/django@2.2",
+						ExternalReferences: &[]cdx.ExternalReference{
+							{
+								URL:  "https://pypi.org/simple/django/",
+								Type: cdx.ERTypeDistribution,
+								Hashes: &[]cdx.Hash{
+									{
+										Algorithm: cdx.HashAlgoSHA256,
+										Value:     "4444444444444444444444444444444444444444444444444444444444444444",
+									},
+								},
+								Properties: &[]cdx.Property{
+									{
+										Name:  "aquasecurity:trivy:SourcedDigest",
+										Value: "lockfile:sha256:4444444444444444444444444444444444444444444444444444444444444444",
+									},
+								},
+							},
+							{
+								URL:  "https://pypi.org/simple/django/",
+								Type: cdx.ERTypeDistribution,
+								Hashes: &[]cdx.Hash{
+									{
+										Algorithm: cdx.HashAlgoSHA256,
+										Value:     "5555555555555555555555555555555555555555555555555555555555555555",
+									},
+								},
+								Properties: &[]cdx.Property{
+									{
+										Name:  "aquasecurity:trivy:SourcedDigest",
+										Value: "lockfile:sha256:5555555555555555555555555555555555555555555555555555555555555555",
+									},
+								},
+							},
+						},
+						Properties: &[]cdx.Property{
+							{
+								Name:  "aquasecurity:trivy:PkgID",
+								Value: "django@2.2",
+							},
+							{
+								Name:  "aquasecurity:trivy:PkgType",
+								Value: "uv",
+							},
+						},
+					},
+					{
+						BOMRef:     "pkg:pypi/localpkg@0.1.0",
+						Type:       cdx.ComponentTypeLibrary,
+						Name:       "localpkg",
+						Version:    "0.1.0",
+						PackageURL: "pkg:pypi/localpkg@0.1.0",
+						Hashes: &[]cdx.Hash{
+							{
+								Algorithm: cdx.HashAlgoSHA256,
+								Value:     "6666666666666666666666666666666666666666666666666666666666666666",
+							},
+						},
+						ExternalReferences: &[]cdx.ExternalReference{
+							{
+								URL:  "../dist/localpkg-0.1.0.tar.gz",
+								Type: cdx.ERTypeSourceDistribution,
+								Hashes: &[]cdx.Hash{
+									{
+										Algorithm: cdx.HashAlgoSHA256,
+										Value:     "6666666666666666666666666666666666666666666666666666666666666666",
+									},
+								},
+								Properties: &[]cdx.Property{
+									{
+										Name:  "aquasecurity:trivy:DistributionKind",
+										Value: "source",
+									},
+									{
+										Name:  "aquasecurity:trivy:FileName",
+										Value: "localpkg-0.1.0.tar.gz",
+									},
+									{
+										Name:  "aquasecurity:trivy:SourcedDigest",
+										Value: "lockfile:sha256:6666666666666666666666666666666666666666666666666666666666666666",
+									},
+								},
+							},
+						},
+						Properties: &[]cdx.Property{
+							{
+								Name:  "aquasecurity:trivy:PkgID",
+								Value: "localpkg@0.1.0",
+							},
+							{
+								Name:  "aquasecurity:trivy:PkgType",
+								Value: "uv",
+							},
+							{
+								Name:  "aquasecurity:trivy:SourcedDigest",
+								Value: "lockfile:sha256:6666666666666666666666666666666666666666666666666666666666666666",
+							},
+						},
+					},
+				},
+				Vulnerabilities: &[]cdx.Vulnerability{},
+				Dependencies: &[]cdx.Dependency{
+					{
+						Ref: "3ff14136-e09f-4df9-80ea-000000000001",
+						Dependencies: &[]string{
+							"3ff14136-e09f-4df9-80ea-000000000002",
+						},
+					},
+					{
+						Ref: "3ff14136-e09f-4df9-80ea-000000000002",
+						Dependencies: &[]string{
+							"pkg:pypi/certifi@2026.10.23",
+							"pkg:pypi/django@2.2",
+							"pkg:pypi/localpkg@0.1.0",
+						},
+					},
+					{
+						Ref:          "pkg:pypi/certifi@2026.10.23",
+						Dependencies: new([]string{}),
+					},
+					{
+						Ref:          "pkg:pypi/django@2.2",
+						Dependencies: new([]string{}),
+					},
+					{
+						Ref:          "pkg:pypi/localpkg@0.1.0",
+						Dependencies: new([]string{}),
+					},
+				},
+			},
+		},
+		{
 			name: "happy path empty",
 			inputReport: types.Report{
 				SchemaVersion: report.SchemaVersion,

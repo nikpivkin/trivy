@@ -15,6 +15,7 @@ import (
 	"golang.org/x/xerrors"
 
 	"github.com/aquasecurity/trivy/pkg/digest"
+	ftypes "github.com/aquasecurity/trivy/pkg/fanal/types"
 	"github.com/aquasecurity/trivy/pkg/log"
 	"github.com/aquasecurity/trivy/pkg/sbom/core"
 )
@@ -234,6 +235,16 @@ func (s *SPDX) parsePackage(spdxPkg spdx.Package) (*core.Component, error) {
 		if !ok {
 			continue
 		}
+		// Annotations are not grouped, because distributions without a file name can share the URL.
+		if k == AnnotationDistribution {
+			d, err := parseDistribution(v)
+			if err != nil {
+				log.Warn("Invalid distribution annotation", log.String("value", v), log.Err(err))
+				continue
+			}
+			component.Distributions = append(component.Distributions, d)
+			continue
+		}
 		component.Properties = append(component.Properties, core.Property{
 			Name:  k,
 			Value: v,
@@ -251,6 +262,33 @@ func (s *SPDX) parsePackage(spdxPkg spdx.Package) (*core.Component, error) {
 	}
 
 	return component, nil
+}
+
+// parseDistribution parses the value of an AnnotationDistribution annotation.
+func parseDistribution(v string) (ftypes.Distribution, error) {
+	fields := strings.SplitN(v, ":", 5)
+	if len(fields) != 5 {
+		return ftypes.Distribution{}, xerrors.Errorf("want 5 fields, got %d", len(fields))
+	}
+	d := ftypes.Distribution{
+		Kind:     ftypes.DistributionKind(fields[1]),
+		FileName: fields[3],
+		URL:      fields[4],
+	}
+	for s := range strings.SplitSeq(fields[2], ",") {
+		if s == "" {
+			continue
+		}
+		alg, value, ok := strings.Cut(s, "=")
+		if !ok || alg == "" || value == "" {
+			return ftypes.Distribution{}, xerrors.Errorf("invalid digest %q", s)
+		}
+		d.Digests = append(d.Digests, digest.SourcedDigest{
+			Digest: digest.NewDigestFromString(digest.Algorithm(alg), value),
+			Source: digest.Source(fields[0]),
+		})
+	}
+	return d, nil
 }
 
 func (s *SPDX) unmarshalChecksums(checksums []spdx.Checksum) []digest.SourcedDigest {

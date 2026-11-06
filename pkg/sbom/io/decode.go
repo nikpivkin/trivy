@@ -214,6 +214,7 @@ func (m *Decoder) decodePackage(ctx context.Context, c *core.Component) (*ftypes
 
 	pkg.Identifier.BOMRef = c.PkgIdentifier.BOMRef
 	pkg.Licenses = c.Licenses
+	pkg.Distributions = c.Distributions
 
 	var hashes []digest.SourcedDigest
 	for _, f := range c.Files {

@@ -529,10 +529,11 @@ func (*Encoder) component(result types.Result, pkg ftypes.Package) *core.Compone
 			PURL:   pkg.Identifier.PURL,
 			BOMRef: pkg.Identifier.BOMRef,
 		},
-		Supplier:   pkg.Maintainer,
-		Licenses:   pkg.Licenses,
-		Files:      files,
-		Properties: filterProperties(properties),
+		Supplier:      pkg.Maintainer,
+		Licenses:      pkg.Licenses,
+		Files:         files,
+		Distributions: pkg.Distributions,
+		Properties:    filterProperties(properties),
 	}
 }
 
