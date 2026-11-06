@@ -75,6 +75,7 @@ func ConvertToRPCPkgs(pkgs []ftypes.Package) []*common.Package {
 			DependsOn:       pkg.DependsOn,
 			Digest:          pkg.Digest.String(),
 			Digests:         ConvertToRPCPkgDigests(pkg.Digests),
+			Distributions:   ConvertToRPCPkgDistributions(pkg.Distributions),
 			Relationship:    int32(pkg.Relationship),
 			Indirect:        pkg.Indirect,
 			Maintainer:      pkg.Maintainer,
@@ -137,6 +138,32 @@ func ConvertFromRPCPkgDigests(rpcDigests []*common.PackageDigest) []digest.Sourc
 		})
 	}
 	return digests
+}
+
+func ConvertToRPCPkgDistributions(dists []ftypes.Distribution) []*common.PackageDistribution {
+	var rpcDists []*common.PackageDistribution
+	for _, d := range dists {
+		rpcDists = append(rpcDists, &common.PackageDistribution{
+			Kind:     string(d.Kind),
+			FileName: d.FileName,
+			Url:      d.URL,
+			Digests:  ConvertToRPCPkgDigests(d.Digests),
+		})
+	}
+	return rpcDists
+}
+
+func ConvertFromRPCPkgDistributions(rpcDists []*common.PackageDistribution) []ftypes.Distribution {
+	var dists []ftypes.Distribution
+	for _, d := range rpcDists {
+		dists = append(dists, ftypes.Distribution{
+			Kind:     ftypes.DistributionKind(d.Kind),
+			FileName: d.FileName,
+			URL:      d.Url,
+			Digests:  ConvertFromRPCPkgDigests(d.Digests),
+		})
+	}
+	return dists
 }
 
 func ConvertToRPCLocations(pkgLocs []ftypes.Location) []*common.Location {
@@ -399,6 +426,7 @@ func ConvertFromRPCPkgs(rpcPkgs []*common.Package) []ftypes.Package {
 			DependsOn:       pkg.DependsOn,
 			Digest:          digest.Digest(pkg.Digest),
 			Digests:         ConvertFromRPCPkgDigests(pkg.Digests),
+			Distributions:   ConvertFromRPCPkgDistributions(pkg.Distributions),
 			Relationship:    ftypes.Relationship(pkg.Relationship),
 			Indirect:        pkg.Indirect,
 			Maintainer:      pkg.Maintainer,

@@ -63,6 +63,7 @@ message Package {
   BuildInfo build_info = 26;
   repeated string installed_files = 27;
   repeated PackageDigest digests = 28;
+  repeated PackageDistribution distributions = 29;
 }
 
 // PackageRepository indicates where the package was distributed from.
@@ -73,6 +74,14 @@ message PackageRepository {
 message PackageDigest {
   string digest = 1;
   string source = 2;
+}
+
+// PackageDistribution is a file that a package version is published as.
+message PackageDistribution {
+  string kind = 1;
+  string file_name = 2;
+  string url = 3;
+  repeated PackageDigest digests = 4;
 }
 
 message PkgIdentifier {

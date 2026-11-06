@@ -181,6 +181,98 @@ func TestConvertToRpcPkgs(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "package with distributions",
+			args: args{
+				pkgs: []ftypes.Package{
+					{
+						Name:    "foo",
+						Version: "1.0",
+						Distributions: []ftypes.Distribution{
+							{
+								Kind:     ftypes.DistributionKindSource,
+								FileName: "foo-1.0.tar.gz",
+								URL:      "https://files.example.com/foo-1.0.tar.gz",
+								Digests: []digest.SourcedDigest{
+									{
+										Digest: "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+										Source: digest.SourceLockfile,
+									},
+								},
+							},
+							{
+								URL: "https://pypi.example.com/simple/foo/",
+								Digests: []digest.SourcedDigest{
+									{
+										Digest: "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+										Source: digest.SourceLockfile,
+									},
+								},
+							},
+							{
+								Kind:     ftypes.DistributionKindBuilt,
+								FileName: "foo-1.0-py3-none-any.whl",
+								URL:      "https://files.example.com/foo-1.0-py3-none-any.whl",
+								Digests: []digest.SourcedDigest{
+									{
+										Digest: "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+										Source: digest.SourceLockfile,
+									},
+									{
+										Digest: "sha512:44444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444",
+										Source: digest.SourceLockfile,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: []*common.Package{
+				{
+					Name:    "foo",
+					Version: "1.0",
+					Layer:   &common.Layer{},
+					Distributions: []*common.PackageDistribution{
+						{
+							Kind:     "source",
+							FileName: "foo-1.0.tar.gz",
+							Url:      "https://files.example.com/foo-1.0.tar.gz",
+							Digests: []*common.PackageDigest{
+								{
+									Digest: "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+									Source: "lockfile",
+								},
+							},
+						},
+						{
+							Url: "https://pypi.example.com/simple/foo/",
+							Digests: []*common.PackageDigest{
+								{
+									Digest: "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+									Source: "lockfile",
+								},
+							},
+						},
+						{
+							Kind:     "built",
+							FileName: "foo-1.0-py3-none-any.whl",
+							Url:      "https://files.example.com/foo-1.0-py3-none-any.whl",
+							Digests: []*common.PackageDigest{
+								{
+									Digest: "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+									Source: "lockfile",
+								},
+								{
+									Digest: "sha512:44444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444",
+									Source: "lockfile",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -444,6 +536,97 @@ func TestConvertFromRpcPkgs(t *testing.T) {
 						{
 							Digest: "sha256:1e2d3c4b5a69788796a5b4c3d2e1f00918273645546372819a0b1c2d3e4f5061",
 							Source: digest.SourceUnknown,
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "package with distributions",
+			args: args{
+				rpcPkgs: []*common.Package{
+					{
+						Name:    "foo",
+						Version: "1.0",
+						Distributions: []*common.PackageDistribution{
+							{
+								Kind:     "source",
+								FileName: "foo-1.0.tar.gz",
+								Url:      "https://files.example.com/foo-1.0.tar.gz",
+								Digests: []*common.PackageDigest{
+									{
+										Digest: "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+										Source: "lockfile",
+									},
+								},
+							},
+							{
+								Url: "https://pypi.example.com/simple/foo/",
+								Digests: []*common.PackageDigest{
+									{
+										Digest: "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+										Source: "lockfile",
+									},
+								},
+							},
+							{
+								Kind:     "built",
+								FileName: "foo-1.0-py3-none-any.whl",
+								Url:      "https://files.example.com/foo-1.0-py3-none-any.whl",
+								Digests: []*common.PackageDigest{
+									{
+										Digest: "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+										Source: "lockfile",
+									},
+									{
+										Digest: "sha512:44444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444",
+										Source: "lockfile",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: []ftypes.Package{
+				{
+					Name:    "foo",
+					Version: "1.0",
+					Distributions: []ftypes.Distribution{
+						{
+							Kind:     ftypes.DistributionKindSource,
+							FileName: "foo-1.0.tar.gz",
+							URL:      "https://files.example.com/foo-1.0.tar.gz",
+							Digests: []digest.SourcedDigest{
+								{
+									Digest: "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+									Source: digest.SourceLockfile,
+								},
+							},
+						},
+						{
+							URL: "https://pypi.example.com/simple/foo/",
+							Digests: []digest.SourcedDigest{
+								{
+									Digest: "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+									Source: digest.SourceLockfile,
+								},
+							},
+						},
+						{
+							Kind:     ftypes.DistributionKindBuilt,
+							FileName: "foo-1.0-py3-none-any.whl",
+							URL:      "https://files.example.com/foo-1.0-py3-none-any.whl",
+							Digests: []digest.SourcedDigest{
+								{
+									Digest: "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+									Source: digest.SourceLockfile,
+								},
+								{
+									Digest: "sha512:44444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444",
+									Source: digest.SourceLockfile,
+								},
+							},
 						},
 					},
 				},
